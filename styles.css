@@ -245,6 +245,41 @@ select:focus {
   top: 20px;
 }
 
+.result-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.result-tabs button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  background: transparent;
+  cursor: pointer;
+}
+
+.result-tabs button.active {
+  color: #fff;
+  background: var(--teal);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
 .result-hero {
   min-height: 292px;
   padding: 24px;
@@ -416,6 +451,35 @@ dd {
   background: var(--soft);
 }
 
+.forecast-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.forecast-detail-grid > div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--soft);
+}
+
+.forecast-detail-grid h3 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.forecast-detail-grid ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  list-style: none;
+}
+
 .spouse-section {
   display: none;
 }
@@ -503,6 +567,14 @@ dd {
   .action-bar {
     grid-template-columns: 1fr;
   }
+
+  .result-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .forecast-detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media print {
@@ -525,6 +597,7 @@ dd {
   }
 
   .masthead-controls,
+  .result-tabs,
   .source-links {
     display: none;
   }
@@ -540,6 +613,10 @@ dd {
 
   .input-panel {
     display: none;
+  }
+
+  .tab-panel {
+    display: block;
   }
 
   .results-column {

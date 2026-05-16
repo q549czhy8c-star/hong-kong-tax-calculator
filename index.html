@@ -368,7 +368,15 @@
               <canvas id="taxChart" width="420" height="210" aria-label="稅款拆解圖"></canvas>
             </section>
 
-            <section class="panel summary-panel">
+            <nav class="result-tabs" aria-label="結果分頁">
+              <button class="active" type="button" data-tab="overview">總覽</button>
+              <button type="button" data-tab="spouse">配偶</button>
+              <button type="button" data-tab="housing">住屋</button>
+              <button type="button" data-tab="forecast">預算</button>
+              <button type="button" data-tab="rules">資料</button>
+            </nav>
+
+            <section class="panel summary-panel tab-panel active" data-panel="overview">
               <h2>計算拆解</h2>
               <dl class="summary-list">
                 <div><dt>總入息</dt><dd id="grossIncome">HK$0</dd></div>
@@ -389,12 +397,30 @@
               </div>
             </section>
 
-            <section class="panel advice-panel">
+            <section class="panel advice-panel tab-panel active" data-panel="overview">
               <h2>扣減稅款建議</h2>
               <ul id="adviceList"></ul>
             </section>
 
-            <section class="panel housing-panel">
+            <section class="panel spouse-panel tab-panel" data-panel="spouse">
+              <h2>配偶分開評稅估算</h2>
+              <dl class="summary-list">
+                <div><dt>配偶總入息</dt><dd id="spouseGrossIncome">HK$0</dd></div>
+                <div><dt>配偶可扣除開支</dt><dd id="spouseDeductions">HK$0</dd></div>
+                <div><dt>配偶基本免稅額</dt><dd id="spouseAllowances">HK$0</dd></div>
+                <div><dt>配偶應課稅入息實額</dt><dd id="spouseNetChargeable">HK$0</dd></div>
+                <div><dt>配偶累進稅款</dt><dd id="spouseProgressiveTax">HK$0</dd></div>
+                <div><dt>配偶標準稅款</dt><dd id="spouseStandardTax">HK$0</dd></div>
+                <div><dt>配偶估計應繳稅款</dt><dd id="spouseTaxPayable">HK$0</dd></div>
+              </dl>
+              <div class="formula-box">
+                <h3>配偶累進稅率算式</h3>
+                <ul id="spouseProgressiveFormula"></ul>
+              </div>
+              <p class="disclaimer">此頁顯示配偶以分開評稅粗略估算的稅款；合併評稅實際稅款已在總覽以已婚免稅額計算。</p>
+            </section>
+
+            <section class="panel housing-panel tab-panel" data-panel="housing">
               <h2>住屋長遠支出比較</h2>
               <dl class="summary-list">
                 <div><dt>現公屋月租估算</dt><dd id="currentPrhRent">HK$0</dd></div>
@@ -410,14 +436,28 @@
               <ul id="housingWarnings" class="housing-warnings"></ul>
             </section>
 
-            <section class="panel forecast-panel">
-              <h2>未來 30 年支出預算</h2>
+            <section class="panel forecast-panel tab-panel" data-panel="forecast">
+              <h2 id="forecastTitle">未來 30 年支出預算</h2>
               <dl class="summary-list">
-                <div><dt>30 年現公屋總支出</dt><dd id="forecastCurrentTotal">HK$0</dd></div>
-                <div><dt>30 年除名方案總支出</dt><dd id="forecastRemovedTotal">HK$0</dd></div>
-                <div><dt>30 年居屋現金流支出</dt><dd id="forecastHosTotal">HK$0</dd></div>
-                <div><dt>30 年最低方案</dt><dd id="forecastBestOption">-</dd></div>
+                <div><dt id="forecastCurrentLabel">現公屋總支出</dt><dd id="forecastCurrentTotal">HK$0</dd></div>
+                <div><dt id="forecastRemovedLabel">除名方案總支出</dt><dd id="forecastRemovedTotal">HK$0</dd></div>
+                <div><dt id="forecastHosLabel">居屋現金流支出</dt><dd id="forecastHosTotal">HK$0</dd></div>
+                <div><dt>最低方案</dt><dd id="forecastBestOption">-</dd></div>
               </dl>
+              <div class="forecast-detail-grid">
+                <div>
+                  <h3>現公屋細項</h3>
+                  <ul id="forecastCurrentBreakdown"></ul>
+                </div>
+                <div>
+                  <h3>除名方案細項</h3>
+                  <ul id="forecastRemovedBreakdown"></ul>
+                </div>
+                <div>
+                  <h3>居屋細項</h3>
+                  <ul id="forecastHosBreakdown"></ul>
+                </div>
+              </div>
               <div class="table-wrap">
                 <table class="forecast-table">
                   <thead>
@@ -427,6 +467,8 @@
                       <th>現公屋</th>
                       <th>除名</th>
                       <th>居屋</th>
+                      <th>除名稅務成本</th>
+                      <th>供樓利息扣稅</th>
                     </tr>
                   </thead>
                   <tbody id="forecastRows"></tbody>
@@ -434,7 +476,7 @@
               </div>
             </section>
 
-            <section class="panel rules-panel">
+            <section class="panel rules-panel tab-panel" data-panel="rules">
               <h2>本年度規則</h2>
               <ul id="ruleNotes"></ul>
               <div class="source-links">

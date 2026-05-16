@@ -353,6 +353,9 @@ function calculate() {
     isMarried,
     person,
     spouse,
+    singleResult,
+    spouseSeparateResult,
+    spouseAllowance: isMarried ? a.basic : 0,
   });
 }
 
@@ -390,6 +393,13 @@ function renderSummary(result) {
     reduction: result.reduction,
     jointTax: result.jointTax,
     separateTax: result.separateTax,
+    spouseGrossIncome: result.spouse.grossIncome,
+    spouseDeductions: result.spouse.deductions,
+    spouseAllowances: result.spouseAllowance,
+    spouseNetChargeable: result.spouseSeparateResult.netChargeable,
+    spouseProgressiveTax: result.spouseSeparateResult.progressive,
+    spouseStandardTax: result.spouseSeparateResult.standard,
+    spouseTaxPayable: result.spouseSeparateResult.taxPayable,
   };
 
   for (const [id, amount] of Object.entries(fields)) {
@@ -399,6 +409,7 @@ function renderSummary(result) {
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
   document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
   renderProgressiveFormula(result);
+  renderSpouseFormula(result);
   renderAdvice(result);
   renderHousingComparison(result);
   renderNotes();
@@ -406,10 +417,17 @@ function renderSummary(result) {
 }
 
 function renderProgressiveFormula(result) {
-  const list = document.getElementById("progressiveFormula");
-  const bands = progressiveBreakdown(result.netChargeable);
-  list.innerHTML = "";
+  renderFormulaList("progressiveFormula", result.netChargeable, result.progressive);
+}
 
+function renderSpouseFormula(result) {
+  renderFormulaList("spouseProgressiveFormula", result.spouseSeparateResult.netChargeable, result.spouseSeparateResult.progressive);
+}
+
+function renderFormulaList(listId, netChargeable, progressive) {
+  const list = document.getElementById(listId);
+  const bands = progressiveBreakdown(netChargeable);
+  list.innerHTML = "";
   bands.forEach((band) => {
     const item = document.createElement("li");
     const range =
@@ -421,7 +439,7 @@ function renderProgressiveFormula(result) {
   });
 
   const total = document.createElement("li");
-  total.innerHTML = `累進稅款合計：<strong>${money.format(Math.round(result.progressive))}</strong>`;
+  total.innerHTML = `累進稅款合計：<strong>${money.format(Math.round(progressive))}</strong>`;
   list.appendChild(total);
 }
 
@@ -598,6 +616,7 @@ function calculateHomeLoanTaxSaving(firstYearInterestAmount, rules, marginalRate
 
 function renderForecastBudget(taxResult, housing) {
   const rules = TAX_YEARS[activeYear];
+  const projectionYears = Math.min(30, Math.max(1, Math.round(value("comparisonYears"))));
   const salaryGrowth = value("salaryGrowthRate") / 100;
   const rentGrowth = value("prhRentGrowthRate") / 100;
   const feeGrowth = value("feeGrowthRate") / 100;
@@ -609,8 +628,17 @@ function renderForecastBudget(taxResult, housing) {
     removed: 0,
     hos: housing.mortgage.downPayment,
   };
+  const detailTotals = {
+    currentRent: 0,
+    removedRent: 0,
+    parentTaxCost: 0,
+    mortgagePayments: 0,
+    fees: 0,
+    homeLoanSaving: 0,
+    downPayment: housing.mortgage.downPayment,
+  };
 
-  for (let year = 1; year <= 30; year += 1) {
+  for (let year = 1; year <= projectionYears; year += 1) {
     const incomeFactor = Math.pow(1 + salaryGrowth, year - 1);
     const rentFactor = Math.pow(1 + rentGrowth, year - 1);
     const feeFactor = Math.pow(1 + feeGrowth, year - 1);
@@ -641,6 +669,12 @@ function renderForecastBudget(taxResult, housing) {
     totals.current += currentAnnual;
     totals.removed += removedAnnual;
     totals.hos += hosAnnual;
+    detailTotals.currentRent += currentAnnual;
+    detailTotals.removedRent += removedRent * 12;
+    detailTotals.parentTaxCost += parentTaxCost;
+    detailTotals.mortgagePayments += mortgagePayments;
+    detailTotals.fees += fees;
+    detailTotals.homeLoanSaving += homeLoanSaving;
 
     rows.push({
       year,
@@ -648,14 +682,52 @@ function renderForecastBudget(taxResult, housing) {
       current: currentAnnual,
       removed: removedAnnual,
       hos: hosAnnual,
+      parentTaxCost,
+      homeLoanSaving,
     });
   }
 
+  document.getElementById("forecastTitle").textContent = `未來 ${projectionYears} 年支出預算`;
+  document.getElementById("forecastCurrentLabel").textContent = `${projectionYears} 年現公屋總支出`;
+  document.getElementById("forecastRemovedLabel").textContent = `${projectionYears} 年除名方案總支出`;
+  document.getElementById("forecastHosLabel").textContent = `${projectionYears} 年居屋現金流支出`;
   document.getElementById("forecastCurrentTotal").textContent = money.format(Math.round(totals.current));
   document.getElementById("forecastRemovedTotal").textContent = money.format(Math.round(totals.removed));
   document.getElementById("forecastHosTotal").textContent = money.format(Math.round(totals.hos));
   document.getElementById("forecastBestOption").textContent = forecastBestOption(totals);
+  renderForecastBreakdowns(detailTotals, totals, projectionYears);
   renderForecastRows(rows);
+}
+
+function renderForecastBreakdowns(details, totals, years) {
+  renderSimpleList("forecastCurrentBreakdown", [
+    `逐年公屋租金合計：${money.format(Math.round(details.currentRent))}`,
+    `公式：每年租金 = 當年淨租金 × 富戶倍數 × 12 + 差餉 × 12`,
+    `${years} 年總支出：${money.format(Math.round(totals.current))}`,
+  ]);
+  renderSimpleList("forecastRemovedBreakdown", [
+    `逐年除名後公屋租金合計：${money.format(Math.round(details.removedRent))}`,
+    `失去父母免稅額稅務成本合計：${money.format(Math.round(details.parentTaxCost))}`,
+    `公式：租金 + 重算稅款差額`,
+    `${years} 年總支出：${money.format(Math.round(totals.removed))}`,
+  ]);
+  renderSimpleList("forecastHosBreakdown", [
+    `首期：${money.format(Math.round(details.downPayment))}`,
+    `供款合計：${money.format(Math.round(details.mortgagePayments))}`,
+    `管理費 / 維修合計：${money.format(Math.round(details.fees))}`,
+    `供樓利息扣稅合計：-${money.format(Math.round(details.homeLoanSaving))}`,
+    `公式：首期 + 供款 + 管理費/維修 - 供樓利息扣稅`,
+  ]);
+}
+
+function renderSimpleList(id, items) {
+  const list = document.getElementById(id);
+  list.innerHTML = "";
+  items.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
 }
 
 function projectedTaxResult(taxResult, incomeFactor, rules) {
@@ -706,6 +778,8 @@ function renderForecastRows(rows) {
       <td>${money.format(Math.round(row.current))}</td>
       <td>${money.format(Math.round(row.removed))}</td>
       <td>${money.format(Math.round(row.hos))}</td>
+      <td>${money.format(Math.round(row.parentTaxCost))}</td>
+      <td>-${money.format(Math.round(row.homeLoanSaving))}</td>
     `;
     body.appendChild(item);
   });
@@ -934,6 +1008,16 @@ document.querySelectorAll("[data-year]").forEach((button) => {
     document.querySelectorAll("[data-year]").forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
     calculate();
+  });
+});
+
+document.querySelectorAll("[data-tab]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const tab = button.dataset.tab;
+    document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll("[data-panel]").forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.panel === tab);
+    });
   });
 });
 
