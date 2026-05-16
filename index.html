@@ -23,8 +23,11 @@
             <div class="action-bar" aria-label="資料操作">
               <button id="clearData" type="button">清除資料</button>
               <button id="saveData" type="button">保存</button>
+              <button id="exportJson" type="button">Export JSON</button>
+              <button id="importJson" type="button">Import JSON</button>
               <button id="printPdf" type="button">轉成 PDF</button>
             </div>
+            <input id="importJsonFile" class="hidden-file-input" type="file" accept="application/json,.json" />
             <p id="saveStatus" class="save-status" aria-live="polite"></p>
           </div>
         </header>

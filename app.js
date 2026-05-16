@@ -886,6 +886,44 @@ function saveFormState() {
   setStatus("已保存到此瀏覽器");
 }
 
+function exportJsonFile() {
+  const payload = {
+    app: "hong-kong-tax-calculator",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    state: collectFormState(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `hong-kong-tax-calculator-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setStatus("已匯出 JSON 檔");
+}
+
+function importJsonFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.addEventListener("load", () => {
+    try {
+      const payload = JSON.parse(reader.result);
+      const state = payload.state || payload;
+      if (!applyFormState(state)) throw new Error("Invalid state");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
+      setStatus("已匯入 JSON 並更新計算");
+    } catch {
+      setStatus("JSON 檔格式不正確");
+    }
+  });
+
+  reader.readAsText(file);
+}
+
 function loadFormState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -1056,6 +1094,14 @@ ids.forEach((id) => {
 
 document.getElementById("saveData").addEventListener("click", saveFormState);
 document.getElementById("clearData").addEventListener("click", clearFormState);
+document.getElementById("exportJson").addEventListener("click", exportJsonFile);
+document.getElementById("importJson").addEventListener("click", () => {
+  document.getElementById("importJsonFile").click();
+});
+document.getElementById("importJsonFile").addEventListener("change", (event) => {
+  importJsonFile(event.target.files[0]);
+  event.target.value = "";
+});
 document.getElementById("printPdf").addEventListener("click", () => {
   setStatus("請在列印視窗選擇另存為 PDF");
   window.print();
