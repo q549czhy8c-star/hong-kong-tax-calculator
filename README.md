@@ -8,6 +8,8 @@ A static web app for estimating Hong Kong salaries tax for 2025/26 and 2026/27.
 - Allowances for marital status, children, parents/grandparents, disability, and dependants
 - Common deductions including MPF, rent, home loan interest, education, VHIS, annuity/TVC, donations, elder care, and reproductive services
 - 2025/26 tax reduction support
+- Public rental housing rent scenario comparison
+- HOS mortgage cash-flow comparison with home loan interest tax prompt
 
 ## Run Locally
 
@@ -17,3 +19,5 @@ Open `index.html` in a browser.
 
 - Hong Kong Inland Revenue Department tax rate table
 - Hong Kong Inland Revenue Department 2026-27 Budget tax measures
+- Hong Kong Housing Authority Well-off Tenants Policies
+- Hong Kong Housing Authority subsidised sale flats mortgage arrangement notes

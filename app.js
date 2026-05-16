@@ -75,6 +75,19 @@ const PROGRESSIVE_BANDS = [
   { limit: Infinity, rate: 0.17 },
 ];
 
+const PRH_INCOME_LIMITS = {
+  1: 13090,
+  2: 20230,
+  3: 25100,
+  4: 31000,
+  5: 38650,
+  6: 45440,
+  7: 49930,
+  8: 55830,
+  9: 61570,
+  10: 67180,
+};
+
 const ids = [
   "income",
   "otherIncome",
@@ -111,6 +124,21 @@ const ids = [
   "elderCare",
   "donations",
   "reproductive",
+  "prhMembers",
+  "prhMonthlyIncome",
+  "prhNetRent",
+  "prhRates",
+  "removedMembers",
+  "removedMonthlyIncome",
+  "lostParents60",
+  "lostParents55",
+  "lostParentLivingAllowance",
+  "hosPrice",
+  "hosDownPaymentPercent",
+  "hosInterestRate",
+  "hosLoanYears",
+  "hosMonthlyFees",
+  "comparisonYears",
 ];
 
 let activeYear = "2025";
@@ -310,8 +338,166 @@ function renderSummary(result) {
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
   document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
   renderAdvice(result);
+  renderHousingComparison(result);
   renderNotes();
   drawChart(result);
+}
+
+function renderHousingComparison(taxResult) {
+  const rules = TAX_YEARS[activeYear];
+  const marginalRate = estimateMarginalRate(taxResult);
+  const years = Math.max(1, value("comparisonYears"));
+  const months = years * 12;
+  const currentPrh = calculatePrhRent(value("prhMembers"), value("prhMonthlyIncome"), value("prhNetRent"), value("prhRates"));
+  const removedPrh = calculatePrhRent(value("removedMembers"), value("removedMonthlyIncome"), value("prhNetRent"), value("prhRates"));
+  const parentTaxCost = calculateLostParentTaxCost(rules, marginalRate);
+  const mortgage = calculateMortgage();
+  const annualHomeLoanTaxSaving = calculateHomeLoanTaxSaving(mortgage.firstYearInterest, rules, marginalRate);
+
+  const currentPrhTotal = currentPrh.monthlyRent * months;
+  const removedPrhTotal = removedPrh.monthlyRent * months + parentTaxCost * years;
+  const hosTotal = mortgage.downPayment + (mortgage.monthlyPayment + value("hosMonthlyFees")) * months - annualHomeLoanTaxSaving * years;
+
+  const fields = {
+    currentPrhRent: currentPrh.monthlyRent,
+    removedPrhRent: removedPrh.monthlyRent,
+    parentTaxCost,
+    hosMortgage: mortgage.monthlyPayment,
+    homeLoanTaxSaving: annualHomeLoanTaxSaving,
+    currentPrhTotal,
+    removedPrhTotal,
+    hosTotal,
+  };
+
+  for (const [id, amount] of Object.entries(fields)) {
+    document.getElementById(id).textContent = money.format(Math.round(amount));
+  }
+
+  renderHousingRecommendation([
+    { label: "維持現公屋申報", total: currentPrhTotal },
+    { label: "除名後保留公屋", total: removedPrhTotal },
+    { label: "申請居屋供樓", total: hosTotal },
+  ]);
+  renderHousingWarnings({
+    currentPrh,
+    removedPrh,
+    mortgage,
+    annualHomeLoanTaxSaving,
+    marginalRate,
+    years,
+  });
+}
+
+function calculatePrhRent(members, monthlyIncome, netRent, rates) {
+  const householdSize = Math.min(10, Math.max(1, Math.round(members)));
+  const incomeLimit = PRH_INCOME_LIMITS[householdSize] || PRH_INCOME_LIMITS[10];
+  const ratio = incomeLimit > 0 ? monthlyIncome / incomeLimit : 0;
+  let multiplier = 1;
+  let status = "一般租金";
+
+  if (ratio > 5) {
+    multiplier = 4.5;
+    status = "超過 5 倍入息限額，或須遷出";
+  } else if (ratio > 4) {
+    multiplier = 4.5;
+    status = "4 至 5 倍入息限額";
+  } else if (ratio > 3) {
+    multiplier = 3.5;
+    status = "3 至 4 倍入息限額";
+  } else if (ratio > 2) {
+    multiplier = 2.5;
+    status = "2 至 3 倍入息限額";
+  }
+
+  return {
+    householdSize,
+    incomeLimit,
+    ratio,
+    multiplier,
+    status,
+    monthlyRent: netRent * multiplier + rates,
+  };
+}
+
+function calculateLostParentTaxCost(rules, marginalRate) {
+  const a = rules.allowances;
+  const livingMultiplier = value("lostParentLivingAllowance") ? 1 : 0;
+  const lostAllowance =
+    value("lostParents60") * (a.parent60 + a.parent60Living * livingMultiplier) +
+    value("lostParents55") * (a.parent55 + a.parent55Living * livingMultiplier);
+  return lostAllowance * marginalRate;
+}
+
+function calculateMortgage() {
+  const price = value("hosPrice");
+  const downPayment = price * cap(value("hosDownPaymentPercent"), 100) / 100;
+  const loanAmount = Math.max(0, price - downPayment);
+  const months = Math.max(1, value("hosLoanYears") * 12);
+  const monthlyRate = value("hosInterestRate") / 100 / 12;
+  const monthlyPayment =
+    monthlyRate === 0
+      ? loanAmount / months
+      : (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+
+  return {
+    price,
+    downPayment,
+    loanAmount,
+    monthlyPayment,
+    firstYearInterest: firstYearInterest(loanAmount, monthlyPayment, monthlyRate),
+  };
+}
+
+function firstYearInterest(loanAmount, monthlyPayment, monthlyRate) {
+  let balance = loanAmount;
+  let interestTotal = 0;
+
+  for (let month = 0; month < 12 && balance > 0; month += 1) {
+    const interest = balance * monthlyRate;
+    const principal = monthlyPayment - interest;
+    interestTotal += interest;
+    balance = Math.max(0, balance - principal);
+  }
+
+  return interestTotal;
+}
+
+function calculateHomeLoanTaxSaving(firstYearInterestAmount, rules, marginalRate) {
+  const deductibleInterest = Math.min(firstYearInterestAmount, rules.deductions.homeLoan);
+  return deductibleInterest * marginalRate;
+}
+
+function renderHousingRecommendation(options) {
+  const recommendation = [...options].sort((first, second) => first.total - second.total)[0];
+  document.getElementById("housingRecommendation").textContent =
+    `以現金流計，${recommendation.label}在比較期內最低，約 ${money.format(Math.round(recommendation.total))}。`;
+}
+
+function renderHousingWarnings(details) {
+  const list = document.getElementById("housingWarnings");
+  const warnings = [
+    `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
+    "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",
+    "購買居屋 / 資助出售單位後，公屋戶主及成員須按房委會規定申報，並在指定階段交回單位或刪除戶籍。",
+    "居屋比較是現金流估算，未計樓價升跌、轉售補地價、印花稅、裝修、律師費及保險。",
+  ];
+
+  if (details.currentPrh.ratio > 5 || details.removedPrh.ratio > 5) {
+    warnings.push("家庭入息如超過 5 倍公屋入息限額，可能不只是加租，而是涉及遷出要求。");
+  }
+
+  if (details.annualHomeLoanTaxSaving > 0) {
+    warnings.push(`如居屋作自住並符合稅務條件，首年供樓利息可帶來約 ${money.format(Math.round(details.annualHomeLoanTaxSaving))} 稅務節省；實際以 IRD 批核為準。`);
+  } else if (details.mortgage.firstYearInterest > 0) {
+    warnings.push("有供樓利息，但現時估算邊際稅率為 0 或沒有應繳稅款，供樓免稅額未必即時慳稅。");
+  }
+
+  list.innerHTML = "";
+  warnings.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
 }
 
 function renderAdvice(result) {

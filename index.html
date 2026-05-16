@@ -200,6 +200,73 @@
                 <input id="reproductive" type="number" min="0" step="1000" value="0" />
               </label>
             </section>
+
+            <section class="form-section compact-grid housing-section">
+              <div class="section-heading wide">
+                <h2>公屋 / 居屋長遠比較</h2>
+                <span>租金、除名及供樓</span>
+              </div>
+              <label>
+                <span>現時申報人數</span>
+                <input id="prhMembers" type="number" min="1" max="10" step="1" value="4" />
+              </label>
+              <label>
+                <span>現時家庭月入</span>
+                <input id="prhMonthlyIncome" type="number" min="0" step="1000" value="52000" />
+              </label>
+              <label>
+                <span>現時淨租金</span>
+                <input id="prhNetRent" type="number" min="0" step="100" value="3200" />
+              </label>
+              <label>
+                <span>每月差餉</span>
+                <input id="prhRates" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>除名後申報人數</span>
+                <input id="removedMembers" type="number" min="1" max="10" step="1" value="2" />
+              </label>
+              <label>
+                <span>除名後家庭月入</span>
+                <input id="removedMonthlyIncome" type="number" min="0" step="1000" value="38000" />
+              </label>
+              <label>
+                <span>失去 60+ 父母/祖父母免稅額人數</span>
+                <input id="lostParents60" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>失去 55-59 父母/祖父母免稅額人數</span>
+                <input id="lostParents55" type="number" min="0" step="1" value="0" />
+              </label>
+              <label class="checkbox-row wide">
+                <input id="lostParentLivingAllowance" type="checkbox" />
+                <span>除名後同住額外免稅額亦會失去</span>
+              </label>
+              <label>
+                <span>居屋樓價</span>
+                <input id="hosPrice" type="number" min="0" step="10000" value="3600000" />
+              </label>
+              <label>
+                <span>首期百分比</span>
+                <input id="hosDownPaymentPercent" type="number" min="0" max="100" step="1" value="10" />
+              </label>
+              <label>
+                <span>按揭年利率 (%)</span>
+                <input id="hosInterestRate" type="number" min="0" max="20" step="0.01" value="4.125" />
+              </label>
+              <label>
+                <span>還款年期</span>
+                <input id="hosLoanYears" type="number" min="1" max="40" step="1" value="30" />
+              </label>
+              <label>
+                <span>每月管理費 / 維修預算</span>
+                <input id="hosMonthlyFees" type="number" min="0" step="100" value="1800" />
+              </label>
+              <label>
+                <span>比較年期</span>
+                <input id="comparisonYears" type="number" min="1" max="40" step="1" value="10" />
+              </label>
+            </section>
           </form>
 
           <aside class="results-column">
@@ -233,14 +300,32 @@
               <ul id="adviceList"></ul>
             </section>
 
+            <section class="panel housing-panel">
+              <h2>住屋長遠支出比較</h2>
+              <dl class="summary-list">
+                <div><dt>現公屋月租估算</dt><dd id="currentPrhRent">HK$0</dd></div>
+                <div><dt>除名後月租估算</dt><dd id="removedPrhRent">HK$0</dd></div>
+                <div><dt>除名後每年稅務成本</dt><dd id="parentTaxCost">HK$0</dd></div>
+                <div><dt>居屋每月供款</dt><dd id="hosMortgage">HK$0</dd></div>
+                <div><dt>首年供樓免稅額估算</dt><dd id="homeLoanTaxSaving">HK$0</dd></div>
+                <div><dt>現公屋總支出</dt><dd id="currentPrhTotal">HK$0</dd></div>
+                <div><dt>除名方案總支出</dt><dd id="removedPrhTotal">HK$0</dd></div>
+                <div><dt>居屋現金流支出</dt><dd id="hosTotal">HK$0</dd></div>
+              </dl>
+              <p id="housingRecommendation" class="housing-recommendation"></p>
+              <ul id="housingWarnings" class="housing-warnings"></ul>
+            </section>
+
             <section class="panel rules-panel">
               <h2>本年度規則</h2>
               <ul id="ruleNotes"></ul>
               <div class="source-links">
                 <a href="https://www.ird.gov.hk/eng/pdf/pam61e.pdf" target="_blank" rel="noreferrer">IRD 稅率表</a>
                 <a href="https://www.ird.gov.hk/eng/tax/budget.htm" target="_blank" rel="noreferrer">2026-27 預算案稅務措施</a>
+                <a href="https://www.housingauthority.gov.hk/tc/public-housing/tenancy-matters/income-and-asset-declaration/index.html" target="_blank" rel="noreferrer">房委會富戶政策</a>
+                <a href="https://www.housingauthority.gov.hk/en/home-ownership/information-for-home-owners/ownership-matters/change-in-mortgage-arrangement/index.html" target="_blank" rel="noreferrer">居屋按揭安排</a>
               </div>
-              <p class="disclaimer">此工具只作估算，未涵蓋所有特殊評稅、海外稅務寬免或個案限制。</p>
+              <p class="disclaimer">此工具只作估算，未涵蓋所有特殊評稅、海外稅務寬免、公屋個案審批、資產限制、居屋轉售限制或銀行按揭批核。</p>
             </section>
           </aside>
         </div>

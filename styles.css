@@ -240,7 +240,8 @@ select:focus {
 
 .summary-panel,
 .rules-panel,
-.advice-panel {
+.advice-panel,
+.housing-panel {
   padding: 22px;
 }
 
@@ -272,6 +273,7 @@ dd {
 }
 
 .advice-panel ul,
+.housing-warnings,
 .rules-panel ul {
   display: grid;
   gap: 10px;
@@ -282,6 +284,7 @@ dd {
 }
 
 .advice-panel li,
+.housing-warnings li,
 .rules-panel li {
   display: grid;
   grid-template-columns: 10px 1fr;
@@ -289,6 +292,7 @@ dd {
 }
 
 .advice-panel li::before,
+.housing-warnings li::before,
 .rules-panel li::before {
   width: 8px;
   height: 8px;
@@ -300,6 +304,19 @@ dd {
 
 .advice-panel li::before {
   background: var(--coral);
+}
+
+.housing-warnings li::before {
+  background: var(--blue);
+}
+
+.housing-recommendation {
+  margin: 16px 0 0;
+  border-left: 4px solid var(--teal);
+  padding: 10px 12px;
+  color: var(--ink);
+  font-weight: 800;
+  background: var(--soft);
 }
 
 .spouse-section {
