@@ -191,8 +191,26 @@ h1 {
   background: var(--blue);
 }
 
+.spouse-banner,
+.spouse-section {
+  order: 20;
+}
+
+.spouse-section.visible {
+  grid-column: 1;
+}
+
 .housing-banner {
   background: var(--gold);
+}
+
+.housing-group {
+  grid-column: 1 / -1;
+  order: 21;
+}
+
+.housing-group.paired {
+  grid-column: 2;
 }
 
 .housing-section {
@@ -515,12 +533,20 @@ dd {
   display: none;
 }
 
-.spouse-section.visible {
+.person-banner.spouse-section.visible {
+  display: block;
+}
+
+.form-section.spouse-section.visible {
   display: grid;
 }
 
-.person-banner.spouse-section.visible {
-  display: block;
+@media (max-width: 1180px) {
+  .spouse-section.visible,
+  .housing-group,
+  .housing-group.paired {
+    grid-column: 1 / -1;
+  }
 }
 
 .source-links {
