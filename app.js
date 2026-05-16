@@ -202,6 +202,28 @@ function progressiveTax(netChargeableIncome) {
   return total;
 }
 
+function progressiveBreakdown(netChargeableIncome) {
+  let remaining = Math.max(0, netChargeableIncome);
+  let lowerLimit = 0;
+
+  return PROGRESSIVE_BANDS.map((band) => {
+    const taxable = Math.min(remaining, band.limit);
+    const tax = Math.max(0, taxable) * band.rate;
+    const upperLimit = band.limit === Infinity ? Infinity : lowerLimit + band.limit;
+    remaining = Math.max(0, remaining - band.limit);
+
+    const item = {
+      lowerLimit,
+      upperLimit,
+      taxable: Math.max(0, taxable),
+      rate: band.rate,
+      tax,
+    };
+    lowerLimit = upperLimit;
+    return item;
+  });
+}
+
 function standardTax(netIncome) {
   const income = Math.max(0, netIncome);
   const firstTier = Math.min(income, 5000000) * 0.15;
@@ -366,10 +388,31 @@ function renderSummary(result) {
 
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
   document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
+  renderProgressiveFormula(result);
   renderAdvice(result);
   renderHousingComparison(result);
   renderNotes();
   drawChart(result);
+}
+
+function renderProgressiveFormula(result) {
+  const list = document.getElementById("progressiveFormula");
+  const bands = progressiveBreakdown(result.netChargeable);
+  list.innerHTML = "";
+
+  bands.forEach((band) => {
+    const item = document.createElement("li");
+    const range =
+      band.upperLimit === Infinity
+        ? `${money.format(band.lowerLimit + 1)} 以上`
+        : `${money.format(band.lowerLimit + 1)} - ${money.format(band.upperLimit)}`;
+    item.innerHTML = `${range}：${money.format(Math.round(band.taxable))} × ${(band.rate * 100).toFixed(0)}% = <strong>${money.format(Math.round(band.tax))}</strong>`;
+    list.appendChild(item);
+  });
+
+  const total = document.createElement("li");
+  total.innerHTML = `累進稅款合計：<strong>${money.format(Math.round(result.progressive))}</strong>`;
+  list.appendChild(total);
 }
 
 function renderHousingComparison(taxResult) {
