@@ -239,7 +239,8 @@ select:focus {
 }
 
 .summary-panel,
-.rules-panel {
+.rules-panel,
+.advice-panel {
   padding: 22px;
 }
 
@@ -270,6 +271,7 @@ dd {
   font-weight: 800;
 }
 
+.advice-panel ul,
 .rules-panel ul {
   display: grid;
   gap: 10px;
@@ -279,12 +281,14 @@ dd {
   color: var(--muted);
 }
 
+.advice-panel li,
 .rules-panel li {
   display: grid;
   grid-template-columns: 10px 1fr;
   gap: 10px;
 }
 
+.advice-panel li::before,
 .rules-panel li::before {
   width: 8px;
   height: 8px;
@@ -292,6 +296,18 @@ dd {
   border-radius: 999px;
   background: var(--gold);
   content: "";
+}
+
+.advice-panel li::before {
+  background: var(--coral);
+}
+
+.spouse-section {
+  display: none;
+}
+
+.spouse-section.visible {
+  display: grid;
 }
 
 .source-links {

@@ -60,6 +60,61 @@
               </label>
             </section>
 
+            <section class="form-section compact-grid spouse-section" id="spouseSection">
+              <div class="section-heading wide">
+                <h2>配偶資料</h2>
+                <span>合併評稅需要</span>
+              </div>
+              <label>
+                <span>配偶薪金及花紅</span>
+                <input id="spouseIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label>
+                <span>配偶其他應評稅入息</span>
+                <input id="spouseOtherIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label>
+                <span>配偶強積金強制供款</span>
+                <input id="spouseMpf" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>配偶自我進修開支</span>
+                <input id="spouseEducation" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶居所貸款利息</span>
+                <input id="spouseHomeLoan" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶住宅租金</span>
+                <input id="spouseRent" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶 VHIS 保費</span>
+                <input id="spouseVhis" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>配偶 VHIS 受保人數</span>
+                <input id="spouseVhisPeople" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>配偶年金 / TVC</span>
+                <input id="spouseAnnuity" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶長者住宿照顧開支</span>
+                <input id="spouseElderCare" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶認可慈善捐款</span>
+                <input id="spouseDonations" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>配偶輔助生育服務開支</span>
+                <input id="spouseReproductive" type="number" min="0" step="1000" value="0" />
+              </label>
+            </section>
+
             <section class="form-section compact-grid">
               <div class="section-heading wide">
                 <h2>子女及供養親屬</h2>
@@ -167,7 +222,15 @@
                 <div><dt>標準稅款</dt><dd id="standardTax">HK$0</dd></div>
                 <div><dt>採用稅款</dt><dd id="baseTax">HK$0</dd></div>
                 <div><dt>一次性寬減</dt><dd id="reduction">HK$0</dd></div>
+                <div><dt>評稅方式</dt><dd id="assessmentMode">個人</dd></div>
+                <div><dt>合併估算</dt><dd id="jointTax">HK$0</dd></div>
+                <div><dt>分開估算</dt><dd id="separateTax">HK$0</dd></div>
               </dl>
+            </section>
+
+            <section class="panel advice-panel">
+              <h2>扣減稅款建議</h2>
+              <ul id="adviceList"></ul>
             </section>
 
             <section class="panel rules-panel">

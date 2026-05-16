@@ -81,6 +81,18 @@ const ids = [
   "status",
   "singleParent",
   "personalDisability",
+  "spouseIncome",
+  "spouseOtherIncome",
+  "spouseMpf",
+  "spouseEducation",
+  "spouseHomeLoan",
+  "spouseRent",
+  "spouseVhis",
+  "spouseVhisPeople",
+  "spouseAnnuity",
+  "spouseElderCare",
+  "spouseDonations",
+  "spouseReproductive",
   "children",
   "newborns",
   "siblings",
@@ -141,33 +153,69 @@ function standardTax(netIncome) {
   return firstTier + secondTier;
 }
 
-function calculate() {
-  const rules = TAX_YEARS[activeYear];
-  const a = rules.allowances;
+function calculatePerson(prefix, rules) {
   const d = rules.deductions;
-  const grossIncome = value("income") + value("otherIncome");
+  const grossIncome = value(fieldId(prefix, "income")) + value(fieldId(prefix, "otherIncome"));
 
   const ordinaryDeductions =
-    cap(value("mpf"), d.mpf) +
-    cap(value("education"), d.education) +
-    cap(value("homeLoan"), d.homeLoan) +
-    cap(value("rent"), d.rent) +
-    cap(value("vhis"), d.vhisPerPerson * value("vhisPeople")) +
-    cap(value("annuity"), d.annuity) +
-    cap(value("elderCare"), d.elderCare) +
-    cap(value("reproductive"), d.reproductive);
+    cap(value(fieldId(prefix, "mpf")), d.mpf) +
+    cap(value(fieldId(prefix, "education")), d.education) +
+    cap(value(fieldId(prefix, "homeLoan")), d.homeLoan) +
+    cap(value(fieldId(prefix, "rent")), d.rent) +
+    cap(value(fieldId(prefix, "vhis")), d.vhisPerPerson * value(fieldId(prefix, "vhisPeople"))) +
+    cap(value(fieldId(prefix, "annuity")), d.annuity) +
+    cap(value(fieldId(prefix, "elderCare")), d.elderCare) +
+    cap(value(fieldId(prefix, "reproductive")), d.reproductive);
 
   const donationBase = Math.max(0, grossIncome - ordinaryDeductions);
-  const donations = cap(value("donations"), donationBase * 0.35);
+  const donations = cap(value(fieldId(prefix, "donations")), donationBase * 0.35);
   const deductions = ordinaryDeductions + donations;
   const netIncome = Math.max(0, grossIncome - deductions);
 
+  return {
+    grossIncome,
+    ordinaryDeductions,
+    donations,
+    deductions,
+    netIncome,
+  };
+}
+
+function fieldId(prefix, name) {
+  if (!prefix) return name;
+  return `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+}
+
+function taxAfterReduction(baseTax, rules) {
+  const reduction = Math.min(baseTax, rules.taxReduction);
+  return {
+    reduction,
+    taxPayable: Math.max(0, baseTax - reduction),
+  };
+}
+
+function calculateTax(netIncome, allowances, rules) {
+  const netChargeable = Math.max(0, netIncome - allowances);
+  const progressive = progressiveTax(netChargeable);
+  const standard = standardTax(netIncome);
+  const baseTax = Math.min(progressive, standard);
+
+  return {
+    netChargeable,
+    progressive,
+    standard,
+    baseTax,
+    ...taxAfterReduction(baseTax, rules),
+  };
+}
+
+function calculateSharedAllowances(rules) {
+  const a = rules.allowances;
   const children = Math.min(9, value("children"));
   const newborns = Math.min(children, value("newborns"));
-  const allowances =
-    (value("status") === "married" ? a.married : a.basic) +
+
+  return (
     (value("singleParent") ? a.singleParent : 0) +
-    (value("personalDisability") ? a.disability : 0) +
     children * a.child +
     newborns * a.newbornExtra +
     value("siblings") * a.sibling +
@@ -175,26 +223,69 @@ function calculate() {
     value("parents60") * a.parent60 +
     value("parents60Living") * a.parent60Living +
     value("parents55") * a.parent55 +
-    value("parents55Living") * a.parent55Living;
+    value("parents55Living") * a.parent55Living
+  );
+}
 
-  const netChargeable = Math.max(0, netIncome - allowances);
-  const progressive = progressiveTax(netChargeable);
-  const standard = standardTax(netIncome);
-  const baseTax = Math.min(progressive, standard);
-  const reduction = Math.min(baseTax, rules.taxReduction);
-  const taxPayable = Math.max(0, baseTax - reduction);
+function calculate() {
+  const rules = TAX_YEARS[activeYear];
+  const a = rules.allowances;
+  const isMarried = value("status") === "married";
+  const person = calculatePerson("", rules);
+  const spouse = isMarried ? calculatePerson("spouse", rules) : emptyPerson();
+  const sharedAllowances = calculateSharedAllowances(rules);
+  const disabilityAllowance = value("personalDisability") ? a.disability : 0;
+  const individualAllowances = a.basic + disabilityAllowance + sharedAllowances;
+  const allowances = (isMarried ? a.married : a.basic) + disabilityAllowance + sharedAllowances;
+  const jointNetIncome = person.netIncome + spouse.netIncome;
+  const jointGrossIncome = person.grossIncome + spouse.grossIncome;
+  const jointDeductions = person.deductions + spouse.deductions;
+  const jointResult = calculateTax(jointNetIncome, allowances, rules);
+  const singleResult = calculateTax(person.netIncome, individualAllowances, rules);
+  const spouseSeparateResult = isMarried ? calculateTax(spouse.netIncome, a.basic, rules) : zeroTax();
+  const separateTaxPayable = singleResult.taxPayable + spouseSeparateResult.taxPayable;
+  const result = isMarried ? jointResult : singleResult;
+  const grossIncome = isMarried ? jointGrossIncome : person.grossIncome;
+  const deductions = isMarried ? jointDeductions : person.deductions;
 
   renderSummary({
     grossIncome,
     deductions,
     allowances,
-    netChargeable,
-    progressive,
-    standard,
-    baseTax,
-    reduction,
-    taxPayable,
+    netChargeable: result.netChargeable,
+    progressive: result.progressive,
+    standard: result.standard,
+    baseTax: result.baseTax,
+    reduction: result.reduction,
+    taxPayable: result.taxPayable,
+    jointTax: jointResult.taxPayable,
+    separateTax: isMarried ? separateTaxPayable : singleResult.taxPayable,
+    assessmentMode: isMarried ? "合併" : "個人",
+    isMarried,
+    person,
+    spouse,
   });
+}
+
+function emptyPerson() {
+  return {
+    grossIncome: 0,
+    ordinaryDeductions: 0,
+    donations: 0,
+    deductions: 0,
+    netIncome: 0,
+  };
+}
+
+function zeroTax() {
+  return {
+    netChargeable: 0,
+    progressive: 0,
+    standard: 0,
+    baseTax: 0,
+    reduction: 0,
+    taxPayable: 0,
+  };
 }
 
 function renderSummary(result) {
@@ -208,14 +299,93 @@ function renderSummary(result) {
     standardTax: result.standard,
     baseTax: result.baseTax,
     reduction: result.reduction,
+    jointTax: result.jointTax,
+    separateTax: result.separateTax,
   };
 
   for (const [id, amount] of Object.entries(fields)) {
     document.getElementById(id).textContent = money.format(Math.round(amount));
   }
 
+  document.getElementById("assessmentMode").textContent = result.assessmentMode;
+  document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
+  renderAdvice(result);
   renderNotes();
   drawChart(result);
+}
+
+function renderAdvice(result) {
+  const list = document.getElementById("adviceList");
+  const rules = TAX_YEARS[activeYear];
+  const d = rules.deductions;
+  const rate = estimateMarginalRate(result);
+  const items = [];
+
+  if (result.isMarried && result.spouse.grossIncome === 0) {
+    items.push("合併評稅要填配偶入息及扣除額；如果留空，估算只反映你的資料。");
+  }
+
+  if (result.isMarried) {
+    const difference = result.separateTax - result.jointTax;
+    if (difference > 0) {
+      items.push(`按現有資料，合併評稅比粗略分開評稅少約 ${money.format(Math.round(difference))}。`);
+    } else if (difference < 0) {
+      items.push(`按現有資料，分開評稅或會比合併少約 ${money.format(Math.round(Math.abs(difference)))}。`);
+    } else {
+      items.push("合併與分開評稅暫時相若；可再輸入配偶扣除額比較。");
+    }
+  }
+
+  if (rate === 0) {
+    items.push("現時估算未有應繳稅款，新增扣除額未必即時慳稅。");
+  }
+
+  addCapAdvice(items, "年金 / TVC", value("annuity"), d.annuity, rate);
+  addCapAdvice(items, "自我進修開支", value("education"), d.education, rate);
+  addCapAdvice(items, "VHIS 保費", value("vhis"), d.vhisPerPerson * value("vhisPeople"), rate);
+  addCapAdvice(items, "長者住宿照顧開支", value("elderCare"), d.elderCare, rate);
+  addCapAdvice(items, "輔助生育服務開支", value("reproductive"), d.reproductive, rate);
+
+  if (result.isMarried) {
+    addCapAdvice(items, "配偶年金 / TVC", value("spouseAnnuity"), d.annuity, rate);
+    addCapAdvice(items, "配偶 VHIS 保費", value("spouseVhis"), d.vhisPerPerson * value("spouseVhisPeople"), rate);
+  }
+
+  const spouseDonations = result.isMarried ? value("spouseDonations") : 0;
+  const donationCap = Math.max(0, (result.grossIncome - result.deductions + result.person.donations + result.spouse.donations) * 0.35);
+  addCapAdvice(items, "認可慈善捐款", value("donations") + spouseDonations, donationCap, rate);
+
+  if (value("homeLoan") > 0 && value("rent") > 0) {
+    items.push("你同時輸入居所貸款利息及住宅租金；實際可否同時扣除要按資格及 IRD 規則確認。");
+  }
+
+  if (items.length === 0) {
+    items.push("暫時未見明顯扣減空間；可補充 VHIS 人數、TVC、慈善捐款或配偶資料再估算。");
+  }
+
+  list.innerHTML = "";
+  items.slice(0, 7).forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
+}
+
+function addCapAdvice(items, label, used, limit, rate) {
+  const remaining = Math.max(0, limit - used);
+  if (limit <= 0 || remaining <= 0 || rate <= 0) return;
+  const saving = remaining * rate;
+  items.push(`${label}仍有約 ${money.format(Math.round(remaining))} 上限；若合資格，按現時邊際稅率可慳約 ${money.format(Math.round(saving))}。`);
+}
+
+function estimateMarginalRate(result) {
+  if (result.baseTax <= 0 || result.netChargeable <= 0) return 0;
+  if (result.standard <= result.progressive) return result.netChargeable > 5000000 ? 0.16 : 0.15;
+  if (result.netChargeable <= 50000) return 0.02;
+  if (result.netChargeable <= 100000) return 0.06;
+  if (result.netChargeable <= 150000) return 0.1;
+  if (result.netChargeable <= 200000) return 0.14;
+  return 0.17;
 }
 
 function renderNotes() {
