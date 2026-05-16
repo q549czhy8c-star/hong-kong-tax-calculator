@@ -94,6 +94,12 @@ const PRH_RENT_PRESETS = {
   nt: 74,
 };
 
+const FORECAST_PRESETS = {
+  base: { salary: 5, prhRent: 3.41, fee: 2.5 },
+  conservative: { salary: 3, prhRent: 3, fee: 2 },
+  stress: { salary: 5, prhRent: 5, fee: 4 },
+};
+
 const STORAGE_KEY = "hkTaxCalculatorState";
 
 const ids = [
@@ -154,6 +160,10 @@ const ids = [
   "hosMonthlyFees",
   "managementFeePreset",
   "comparisonYears",
+  "forecastPreset",
+  "salaryGrowthRate",
+  "prhRentGrowthRate",
+  "feeGrowthRate",
 ];
 
 let activeYear = "2025";
@@ -459,6 +469,13 @@ function renderHousingComparison(taxResult) {
     marginalRate,
     years,
   });
+  renderForecastBudget(taxResult, {
+    currentPrh,
+    removedPrh,
+    mortgage,
+    annualHomeLoanTaxSaving,
+    parentTaxCost,
+  });
 }
 
 function applyReferencePresets() {
@@ -480,12 +497,21 @@ function applyReferencePresets() {
   applyNumericPreset("interestPreset", "hosInterestRate");
   applyNumericPreset("loanYearsPreset", "hosLoanYears");
   applyNumericPreset("managementFeePreset", "hosMonthlyFees");
+  applyForecastPreset();
 }
 
 function applyNumericPreset(selectId, inputId) {
   const preset = value(selectId);
   if (preset === "custom") return;
   setNumberValue(inputId, Number(preset));
+}
+
+function applyForecastPreset() {
+  const preset = value("forecastPreset");
+  if (preset === "custom" || !FORECAST_PRESETS[preset]) return;
+  setNumberValue("salaryGrowthRate", FORECAST_PRESETS[preset].salary);
+  setNumberValue("prhRentGrowthRate", FORECAST_PRESETS[preset].prhRent);
+  setNumberValue("feeGrowthRate", FORECAST_PRESETS[preset].fee);
 }
 
 function calculatePrhRent(members, monthlyIncome, netRent, rates) {
@@ -568,6 +594,121 @@ function firstYearInterest(loanAmount, monthlyPayment, monthlyRate) {
 function calculateHomeLoanTaxSaving(firstYearInterestAmount, rules, marginalRate) {
   const deductibleInterest = Math.min(firstYearInterestAmount, rules.deductions.homeLoan);
   return deductibleInterest * marginalRate;
+}
+
+function renderForecastBudget(taxResult, housing) {
+  const rules = TAX_YEARS[activeYear];
+  const salaryGrowth = value("salaryGrowthRate") / 100;
+  const rentGrowth = value("prhRentGrowthRate") / 100;
+  const feeGrowth = value("feeGrowthRate") / 100;
+  const monthlyRate = value("hosInterestRate") / 100 / 12;
+  let mortgageBalance = housing.mortgage.loanAmount;
+  const rows = [];
+  const totals = {
+    current: 0,
+    removed: 0,
+    hos: housing.mortgage.downPayment,
+  };
+
+  for (let year = 1; year <= 30; year += 1) {
+    const incomeFactor = Math.pow(1 + salaryGrowth, year - 1);
+    const rentFactor = Math.pow(1 + rentGrowth, year - 1);
+    const feeFactor = Math.pow(1 + feeGrowth, year - 1);
+    const projectedTax = projectedTaxResult(taxResult, incomeFactor, rules);
+    const currentRent = calculatePrhRent(
+      value("prhMembers"),
+      value("prhMonthlyIncome") * incomeFactor,
+      value("prhNetRent") * rentFactor,
+      value("prhRates") * rentFactor,
+    ).monthlyRent;
+    const removedRent = calculatePrhRent(
+      value("removedMembers"),
+      value("removedMonthlyIncome") * incomeFactor,
+      value("prhNetRent") * rentFactor,
+      value("prhRates") * rentFactor,
+    ).monthlyRent;
+    const parentTaxCost = calculateLostParentTaxCost(projectedTax, rules);
+    const amortization = annualMortgageAmortization(mortgageBalance, housing.mortgage.monthlyPayment, monthlyRate, year <= value("hosLoanYears"));
+    mortgageBalance = amortization.endingBalance;
+    const interest = amortization.interest;
+    const homeLoanSaving = calculateHomeLoanTaxSaving(interest, rules, estimateMarginalRate(projectedTax));
+    const mortgagePayments = year <= value("hosLoanYears") ? housing.mortgage.monthlyPayment * 12 : 0;
+    const fees = value("hosMonthlyFees") * feeFactor * 12;
+    const currentAnnual = currentRent * 12;
+    const removedAnnual = removedRent * 12 + parentTaxCost;
+    const hosAnnual = mortgagePayments + fees - homeLoanSaving;
+
+    totals.current += currentAnnual;
+    totals.removed += removedAnnual;
+    totals.hos += hosAnnual;
+
+    rows.push({
+      year,
+      income: value("prhMonthlyIncome") * incomeFactor,
+      current: currentAnnual,
+      removed: removedAnnual,
+      hos: hosAnnual,
+    });
+  }
+
+  document.getElementById("forecastCurrentTotal").textContent = money.format(Math.round(totals.current));
+  document.getElementById("forecastRemovedTotal").textContent = money.format(Math.round(totals.removed));
+  document.getElementById("forecastHosTotal").textContent = money.format(Math.round(totals.hos));
+  document.getElementById("forecastBestOption").textContent = forecastBestOption(totals);
+  renderForecastRows(rows);
+}
+
+function projectedTaxResult(taxResult, incomeFactor, rules) {
+  const netIncome = taxResult.netIncome * incomeFactor;
+  const projected = calculateTax(netIncome, taxResult.allowances, rules);
+  return {
+    ...taxResult,
+    ...projected,
+    netIncome,
+  };
+}
+
+function annualMortgageAmortization(startingBalance, monthlyPayment, monthlyRate, isActive) {
+  let workingBalance = startingBalance;
+  let interestTotal = 0;
+
+  for (let month = 0; month < 12 && workingBalance > 0 && isActive; month += 1) {
+    const interest = workingBalance * monthlyRate;
+    const principal = monthlyPayment - interest;
+    interestTotal += interest;
+    workingBalance = Math.max(0, workingBalance - principal);
+  }
+
+  return {
+    interest: interestTotal,
+    endingBalance: workingBalance,
+  };
+}
+
+function forecastBestOption(totals) {
+  const options = [
+    { label: "維持現公屋申報", total: totals.current },
+    { label: "除名後保留公屋", total: totals.removed },
+    { label: "申請居屋供樓", total: totals.hos },
+  ];
+  return options.sort((first, second) => first.total - second.total)[0].label;
+}
+
+function renderForecastRows(rows) {
+  const body = document.getElementById("forecastRows");
+  body.innerHTML = "";
+
+  rows.forEach((row) => {
+    const item = document.createElement("tr");
+    item.innerHTML = `
+      <td>第 ${row.year} 年</td>
+      <td>${money.format(Math.round(row.income))}</td>
+      <td>${money.format(Math.round(row.current))}</td>
+      <td>${money.format(Math.round(row.removed))}</td>
+      <td>${money.format(Math.round(row.hos))}</td>
+    `;
+    body.appendChild(item);
+  });
 }
 
 function renderHousingRecommendation(options) {

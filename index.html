@@ -335,6 +335,27 @@
                 <span>比較年期</span>
                 <input id="comparisonYears" type="number" min="1" max="40" step="1" value="10" />
               </label>
+              <label>
+                <span>30 年預算假設</span>
+                <select id="forecastPreset">
+                  <option value="base">基準：薪金 5%、租金 3.41%、費用 2.5%</option>
+                  <option value="conservative">保守：薪金 3%、租金 3%、費用 2%</option>
+                  <option value="stress">壓力：薪金 5%、租金 5%、費用 4%</option>
+                  <option value="custom">自訂</option>
+                </select>
+              </label>
+              <label>
+                <span>薪金 / 家庭入息年增長 (%)</span>
+                <input id="salaryGrowthRate" type="number" min="-20" max="30" step="0.1" value="5" />
+              </label>
+              <label>
+                <span>公屋租金年增長 (%)</span>
+                <input id="prhRentGrowthRate" type="number" min="-20" max="30" step="0.1" value="3.41" />
+              </label>
+              <label>
+                <span>管理費 / 維修年增長 (%)</span>
+                <input id="feeGrowthRate" type="number" min="-20" max="30" step="0.1" value="2.5" />
+              </label>
             </section>
           </form>
 
@@ -389,6 +410,30 @@
               <ul id="housingWarnings" class="housing-warnings"></ul>
             </section>
 
+            <section class="panel forecast-panel">
+              <h2>未來 30 年支出預算</h2>
+              <dl class="summary-list">
+                <div><dt>30 年現公屋總支出</dt><dd id="forecastCurrentTotal">HK$0</dd></div>
+                <div><dt>30 年除名方案總支出</dt><dd id="forecastRemovedTotal">HK$0</dd></div>
+                <div><dt>30 年居屋現金流支出</dt><dd id="forecastHosTotal">HK$0</dd></div>
+                <div><dt>30 年最低方案</dt><dd id="forecastBestOption">-</dd></div>
+              </dl>
+              <div class="table-wrap">
+                <table class="forecast-table">
+                  <thead>
+                    <tr>
+                      <th>年份</th>
+                      <th>月入</th>
+                      <th>現公屋</th>
+                      <th>除名</th>
+                      <th>居屋</th>
+                    </tr>
+                  </thead>
+                  <tbody id="forecastRows"></tbody>
+                </table>
+              </div>
+            </section>
+
             <section class="panel rules-panel">
               <h2>本年度規則</h2>
               <ul id="ruleNotes"></ul>
@@ -399,8 +444,10 @@
                 <a href="https://www.housingauthority.gov.hk/en/home-ownership/information-for-home-owners/ownership-matters/change-in-mortgage-arrangement/index.html" target="_blank" rel="noreferrer">居屋按揭安排</a>
                 <a href="https://www.housingauthority.gov.hk/tc/common/pdf/about-us/publications-and-statistics/HIF2025.pdf" target="_blank" rel="noreferrer">房屋統計數字 2025</a>
                 <a href="https://www.rvd.gov.hk/en/our_services/rates.html" target="_blank" rel="noreferrer">差餉物業估價署差餉</a>
+                <a href="https://www.hkma.gov.hk/eng/market-data-and-statistics/monthly-statistical-bulletin/" target="_blank" rel="noreferrer">金管局利率統計</a>
+                <a href="https://www.rvd.gov.hk/en/publications/annual_summary_previous.html" target="_blank" rel="noreferrer">物業市場年度摘要</a>
               </div>
-              <p class="disclaimer">此工具只作估算，未涵蓋所有特殊評稅、海外稅務寬免、公屋個案審批、資產限制、居屋轉售限制或銀行按揭批核。</p>
+              <p class="disclaimer">此工具只作估算，30 年預算是以過往長期數據建立的情境假設，未涵蓋所有特殊評稅、海外稅務寬免、公屋個案審批、資產限制、居屋轉售限制或銀行按揭批核。</p>
             </section>
           </aside>
         </div>
