@@ -308,6 +308,7 @@ function calculate() {
     grossIncome,
     deductions,
     allowances,
+    netIncome: isMarried ? jointNetIncome : person.netIncome,
     netChargeable: result.netChargeable,
     progressive: result.progressive,
     standard: result.standard,
@@ -379,7 +380,7 @@ function renderHousingComparison(taxResult) {
   const months = years * 12;
   const currentPrh = calculatePrhRent(value("prhMembers"), value("prhMonthlyIncome"), value("prhNetRent"), value("prhRates"));
   const removedPrh = calculatePrhRent(value("removedMembers"), value("removedMonthlyIncome"), value("prhNetRent"), value("prhRates"));
-  const parentTaxCost = calculateLostParentTaxCost(rules, marginalRate);
+  const parentTaxCost = calculateLostParentTaxCost(taxResult, rules);
   const mortgage = calculateMortgage();
   const annualHomeLoanTaxSaving = calculateHomeLoanTaxSaving(mortgage.firstYearInterest, rules, marginalRate);
 
@@ -475,13 +476,16 @@ function calculatePrhRent(members, monthlyIncome, netRent, rates) {
   };
 }
 
-function calculateLostParentTaxCost(rules, marginalRate) {
+function calculateLostParentTaxCost(taxResult, rules) {
   const a = rules.allowances;
   const livingMultiplier = value("lostParentLivingAllowance") ? 1 : 0;
   const lostAllowance =
     value("lostParents60") * (a.parent60 + a.parent60Living * livingMultiplier) +
     value("lostParents55") * (a.parent55 + a.parent55Living * livingMultiplier);
-  return lostAllowance * marginalRate;
+  if (lostAllowance <= 0) return 0;
+
+  const recalculated = calculateTax(taxResult.netIncome, Math.max(0, taxResult.allowances - lostAllowance), rules);
+  return Math.max(0, recalculated.taxPayable - taxResult.taxPayable);
 }
 
 function calculateMortgage() {
