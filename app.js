@@ -435,6 +435,7 @@ function renderSummary(result) {
 
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
   document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
+  document.getElementById("spouseBanner").classList.toggle("visible", result.isMarried);
   renderProgressiveFormula(result);
   renderSpouseFormula(result);
   renderAdvice(result);

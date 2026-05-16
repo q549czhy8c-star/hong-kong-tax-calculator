@@ -173,6 +173,20 @@ h1 {
   background: var(--panel);
 }
 
+.person-banner {
+  grid-column: 1 / -1;
+  padding: 12px 18px;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  background: var(--teal-dark);
+}
+
+.spouse-banner {
+  background: var(--blue);
+}
+
 .compact-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -485,6 +499,10 @@ dd {
 
 .spouse-section.visible {
   display: grid;
+}
+
+.person-banner.spouse-section.visible {
+  display: block;
 }
 
 .source-links {

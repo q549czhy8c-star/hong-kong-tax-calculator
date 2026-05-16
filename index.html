@@ -31,9 +31,10 @@
 
         <div class="content-grid">
           <form class="panel input-panel" id="tax-form">
+            <div class="person-banner self-banner">本人資料</div>
             <section class="form-section">
               <div class="section-heading">
-                <h2>入息</h2>
+                <h2>本人入息</h2>
                 <span>HKD / 年度</span>
               </div>
               <label>
@@ -48,7 +49,7 @@
 
             <section class="form-section">
               <div class="section-heading">
-                <h2>個人狀況</h2>
+                <h2>本人狀況</h2>
                 <span>免稅額</span>
               </div>
               <label>
@@ -68,9 +69,96 @@
               </label>
             </section>
 
+            <section class="form-section compact-grid">
+              <div class="section-heading wide">
+                <h2>家庭及本人供養親屬</h2>
+                <span>人數</span>
+              </div>
+              <label>
+                <span>子女</span>
+                <input id="children" type="number" min="0" max="9" step="1" value="0" />
+              </label>
+              <label>
+                <span>合資格新生 / 未滿兩歲子女</span>
+                <input id="newborns" type="number" min="0" max="9" step="1" value="0" />
+              </label>
+              <label>
+                <span>供養兄弟姊妹</span>
+                <input id="siblings" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>傷殘受養人</span>
+                <input id="disabledDependants" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>父母/祖父母 60+</span>
+                <input id="parents60" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>同住 60+</span>
+                <input id="parents60Living" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>父母/祖父母 55-59</span>
+                <input id="parents55" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>同住 55-59</span>
+                <input id="parents55Living" type="number" min="0" step="1" value="0" />
+              </label>
+            </section>
+
+            <section class="form-section compact-grid">
+              <div class="section-heading wide">
+                <h2>本人扣除額</h2>
+                <span>實付金額，系統套用上限</span>
+              </div>
+              <label>
+                <span>強積金強制供款</span>
+                <input id="mpf" type="number" min="0" step="100" value="18000" />
+              </label>
+              <label>
+                <span>自我進修開支</span>
+                <input id="education" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>居所貸款利息</span>
+                <input id="homeLoan" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>住宅租金</span>
+                <input id="rent" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>VHIS 保費</span>
+                <input id="vhis" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>VHIS 受保人數</span>
+                <input id="vhisPeople" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>合資格年金 / TVC</span>
+                <input id="annuity" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>長者住宿照顧開支</span>
+                <input id="elderCare" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>認可慈善捐款</span>
+                <input id="donations" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>輔助生育服務開支</span>
+                <input id="reproductive" type="number" min="0" step="1000" value="0" />
+              </label>
+            </section>
+
+            <div class="person-banner spouse-banner spouse-section" id="spouseBanner">配偶資料</div>
             <section class="form-section compact-grid spouse-section" id="spouseSection">
               <div class="section-heading wide">
-                <h2>配偶資料</h2>
+                <h2>配偶收入及扣除額</h2>
                 <span>合併評稅需要</span>
               </div>
               <label>
@@ -136,92 +224,6 @@
               <label>
                 <span>配偶同住 55-59</span>
                 <input id="spouseParents55Living" type="number" min="0" step="1" value="0" />
-              </label>
-            </section>
-
-            <section class="form-section compact-grid">
-              <div class="section-heading wide">
-                <h2>子女及供養親屬</h2>
-                <span>人數</span>
-              </div>
-              <label>
-                <span>子女</span>
-                <input id="children" type="number" min="0" max="9" step="1" value="0" />
-              </label>
-              <label>
-                <span>合資格新生 / 未滿兩歲子女</span>
-                <input id="newborns" type="number" min="0" max="9" step="1" value="0" />
-              </label>
-              <label>
-                <span>供養兄弟姊妹</span>
-                <input id="siblings" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>傷殘受養人</span>
-                <input id="disabledDependants" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>父母/祖父母 60+</span>
-                <input id="parents60" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>同住 60+</span>
-                <input id="parents60Living" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>父母/祖父母 55-59</span>
-                <input id="parents55" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>同住 55-59</span>
-                <input id="parents55Living" type="number" min="0" step="1" value="0" />
-              </label>
-            </section>
-
-            <section class="form-section compact-grid">
-              <div class="section-heading wide">
-                <h2>扣除額</h2>
-                <span>實付金額，系統套用上限</span>
-              </div>
-              <label>
-                <span>強積金強制供款</span>
-                <input id="mpf" type="number" min="0" step="100" value="18000" />
-              </label>
-              <label>
-                <span>自我進修開支</span>
-                <input id="education" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>居所貸款利息</span>
-                <input id="homeLoan" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>住宅租金</span>
-                <input id="rent" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>VHIS 保費</span>
-                <input id="vhis" type="number" min="0" step="100" value="0" />
-              </label>
-              <label>
-                <span>VHIS 受保人數</span>
-                <input id="vhisPeople" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>合資格年金 / TVC</span>
-                <input id="annuity" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>長者住宿照顧開支</span>
-                <input id="elderCare" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>認可慈善捐款</span>
-                <input id="donations" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>輔助生育服務開支</span>
-                <input id="reproductive" type="number" min="0" step="1000" value="0" />
               </label>
             </section>
 
