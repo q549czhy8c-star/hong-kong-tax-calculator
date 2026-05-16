@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>香港薪俸稅計算機</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace">
+        <header class="masthead">
+          <div>
+            <p class="eyebrow">Hong Kong Salaries Tax</p>
+            <h1>香港薪俸稅計算機</h1>
+            <p class="lede">按 IRD 2025/26 及 2026/27 免稅額、扣除額與稅率估算應繳稅款。</p>
+          </div>
+          <div class="year-switch" role="group" aria-label="課稅年度">
+            <button class="active" type="button" data-year="2025">2025/26</button>
+            <button type="button" data-year="2026">2026/27</button>
+          </div>
+        </header>
+
+        <div class="content-grid">
+          <form class="panel input-panel" id="tax-form">
+            <section class="form-section">
+              <div class="section-heading">
+                <h2>入息</h2>
+                <span>HKD / 年度</span>
+              </div>
+              <label>
+                <span>薪金、佣金及花紅</span>
+                <input id="income" type="number" min="0" step="1000" value="720000" inputmode="decimal" />
+              </label>
+              <label>
+                <span>其他應評稅入息</span>
+                <input id="otherIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+            </section>
+
+            <section class="form-section">
+              <div class="section-heading">
+                <h2>個人狀況</h2>
+                <span>免稅額</span>
+              </div>
+              <label>
+                <span>婚姻狀況</span>
+                <select id="status">
+                  <option value="single">單身 / 分開評稅</option>
+                  <option value="married">已婚合併評稅</option>
+                </select>
+              </label>
+              <label class="checkbox-row">
+                <input id="singleParent" type="checkbox" />
+                <span>單親免稅額</span>
+              </label>
+              <label class="checkbox-row">
+                <input id="personalDisability" type="checkbox" />
+                <span>個人傷殘免稅額</span>
+              </label>
+            </section>
+
+            <section class="form-section compact-grid">
+              <div class="section-heading wide">
+                <h2>子女及供養親屬</h2>
+                <span>人數</span>
+              </div>
+              <label>
+                <span>子女</span>
+                <input id="children" type="number" min="0" max="9" step="1" value="0" />
+              </label>
+              <label>
+                <span>合資格新生 / 未滿兩歲子女</span>
+                <input id="newborns" type="number" min="0" max="9" step="1" value="0" />
+              </label>
+              <label>
+                <span>供養兄弟姊妹</span>
+                <input id="siblings" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>傷殘受養人</span>
+                <input id="disabledDependants" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>父母/祖父母 60+</span>
+                <input id="parents60" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>同住 60+</span>
+                <input id="parents60Living" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>父母/祖父母 55-59</span>
+                <input id="parents55" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>同住 55-59</span>
+                <input id="parents55Living" type="number" min="0" step="1" value="0" />
+              </label>
+            </section>
+
+            <section class="form-section compact-grid">
+              <div class="section-heading wide">
+                <h2>扣除額</h2>
+                <span>實付金額，系統套用上限</span>
+              </div>
+              <label>
+                <span>強積金強制供款</span>
+                <input id="mpf" type="number" min="0" step="100" value="18000" />
+              </label>
+              <label>
+                <span>自我進修開支</span>
+                <input id="education" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>居所貸款利息</span>
+                <input id="homeLoan" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>住宅租金</span>
+                <input id="rent" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>VHIS 保費</span>
+                <input id="vhis" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>VHIS 受保人數</span>
+                <input id="vhisPeople" type="number" min="0" step="1" value="0" />
+              </label>
+              <label>
+                <span>合資格年金 / TVC</span>
+                <input id="annuity" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>長者住宿照顧開支</span>
+                <input id="elderCare" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>認可慈善捐款</span>
+                <input id="donations" type="number" min="0" step="1000" value="0" />
+              </label>
+              <label>
+                <span>輔助生育服務開支</span>
+                <input id="reproductive" type="number" min="0" step="1000" value="0" />
+              </label>
+            </section>
+          </form>
+
+          <aside class="results-column">
+            <section class="result-hero">
+              <div>
+                <span class="result-label">估計應繳稅款</span>
+                <strong id="taxPayable">HK$0</strong>
+              </div>
+              <canvas id="taxChart" width="420" height="210" aria-label="稅款拆解圖"></canvas>
+            </section>
+
+            <section class="panel summary-panel">
+              <h2>計算拆解</h2>
+              <dl class="summary-list">
+                <div><dt>總入息</dt><dd id="grossIncome">HK$0</dd></div>
+                <div><dt>可扣除開支</dt><dd id="deductions">HK$0</dd></div>
+                <div><dt>免稅額</dt><dd id="allowances">HK$0</dd></div>
+                <div><dt>應課稅入息實額</dt><dd id="netChargeable">HK$0</dd></div>
+                <div><dt>累進稅款</dt><dd id="progressiveTax">HK$0</dd></div>
+                <div><dt>標準稅款</dt><dd id="standardTax">HK$0</dd></div>
+                <div><dt>採用稅款</dt><dd id="baseTax">HK$0</dd></div>
+                <div><dt>一次性寬減</dt><dd id="reduction">HK$0</dd></div>
+              </dl>
+            </section>
+
+            <section class="panel rules-panel">
+              <h2>本年度規則</h2>
+              <ul id="ruleNotes"></ul>
+              <div class="source-links">
+                <a href="https://www.ird.gov.hk/eng/pdf/pam61e.pdf" target="_blank" rel="noreferrer">IRD 稅率表</a>
+                <a href="https://www.ird.gov.hk/eng/tax/budget.htm" target="_blank" rel="noreferrer">2026-27 預算案稅務措施</a>
+              </div>
+              <p class="disclaimer">此工具只作估算，未涵蓋所有特殊評稅、海外稅務寬免或個案限制。</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
