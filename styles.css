@@ -10,7 +10,7 @@
   --coral: #c45242;
   --gold: #b7831b;
   --blue: #256f9f;
-  --shadow: 0 18px 45px rgba(20, 35, 48, 0.12);
+  --shadow: 0 8px 22px rgba(20, 35, 48, 0.08);
 }
 
 * {
@@ -145,8 +145,8 @@ h1 {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1.18fr) minmax(380px, 0.82fr);
+  gap: 18px;
   align-items: start;
 }
 
@@ -168,8 +168,8 @@ h1 {
 
 .form-section {
   display: grid;
-  gap: 16px;
-  padding: 22px;
+  gap: 12px;
+  padding: 18px;
   background: var(--panel);
 }
 
@@ -204,19 +204,19 @@ h1 {
 
 label {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 650;
 }
 
 input,
 select {
   width: 100%;
-  min-height: 44px;
+  min-height: 38px;
   border: 1px solid #cbd5dd;
   border-radius: 6px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   color: var(--ink);
   background: #fbfcfd;
   outline: none;
@@ -231,7 +231,7 @@ select:focus {
 .checkbox-row {
   grid-template-columns: 20px 1fr;
   align-items: center;
-  min-height: 44px;
+  min-height: 38px;
 }
 
 .checkbox-row input {
@@ -241,8 +241,7 @@ select:focus {
 .results-column {
   display: grid;
   gap: 18px;
-  position: sticky;
-  top: 20px;
+  position: static;
 }
 
 .result-tabs {
@@ -281,8 +280,8 @@ select:focus {
 }
 
 .result-hero {
-  min-height: 292px;
-  padding: 24px;
+  min-height: 240px;
+  padding: 20px;
   color: #fff;
   background:
     linear-gradient(135deg, rgba(7, 95, 93, 0.94), rgba(37, 111, 159, 0.88)),
@@ -306,8 +305,8 @@ select:focus {
 #taxChart {
   display: block;
   width: 100%;
-  height: 170px;
-  margin-top: 22px;
+  height: 135px;
+  margin-top: 18px;
 }
 
 .summary-panel,
@@ -315,7 +314,7 @@ select:focus {
 .advice-panel,
 .housing-panel,
 .forecast-panel {
-  padding: 22px;
+  padding: 18px;
 }
 
 .summary-list {
@@ -328,7 +327,7 @@ select:focus {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 16px;
-  padding: 12px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -552,7 +551,7 @@ dd {
   }
 
   .form-section {
-    padding: 18px;
+    padding: 16px;
   }
 
   .year-switch {

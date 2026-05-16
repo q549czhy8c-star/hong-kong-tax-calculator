@@ -120,6 +120,10 @@ const ids = [
   "spouseElderCare",
   "spouseDonations",
   "spouseReproductive",
+  "spouseParents60",
+  "spouseParents60Living",
+  "spouseParents55",
+  "spouseParents55Living",
   "children",
   "newborns",
   "siblings",
@@ -297,7 +301,7 @@ function calculateTax(netIncome, allowances, rules) {
   };
 }
 
-function calculateSharedAllowances(rules) {
+function calculateSharedAllowances(rules, isMarried) {
   const a = rules.allowances;
   const children = Math.min(9, value("children"));
   const newborns = Math.min(children, value("newborns"));
@@ -308,10 +312,17 @@ function calculateSharedAllowances(rules) {
     newborns * a.newbornExtra +
     value("siblings") * a.sibling +
     value("disabledDependants") * a.disabledDependant +
-    value("parents60") * a.parent60 +
-    value("parents60Living") * a.parent60Living +
-    value("parents55") * a.parent55 +
-    value("parents55Living") * a.parent55Living
+    parentAllowances("", a) +
+    (isMarried ? parentAllowances("spouse", a) : 0)
+  );
+}
+
+function parentAllowances(prefix, allowances) {
+  return (
+    value(fieldId(prefix, "parents60")) * allowances.parent60 +
+    value(fieldId(prefix, "parents60Living")) * allowances.parent60Living +
+    value(fieldId(prefix, "parents55")) * allowances.parent55 +
+    value(fieldId(prefix, "parents55Living")) * allowances.parent55Living
   );
 }
 
@@ -321,16 +332,17 @@ function calculate() {
   const isMarried = value("status") === "married";
   const person = calculatePerson("", rules);
   const spouse = isMarried ? calculatePerson("spouse", rules) : emptyPerson();
-  const sharedAllowances = calculateSharedAllowances(rules);
+  const sharedAllowances = calculateSharedAllowances(rules, isMarried);
   const disabilityAllowance = value("personalDisability") ? a.disability : 0;
-  const individualAllowances = a.basic + disabilityAllowance + sharedAllowances;
+  const individualAllowances = a.basic + disabilityAllowance + calculateSharedAllowancesForPrimary(rules);
   const allowances = (isMarried ? a.married : a.basic) + disabilityAllowance + sharedAllowances;
+  const spouseAllowances = isMarried ? a.basic + parentAllowances("spouse", a) : 0;
   const jointNetIncome = person.netIncome + spouse.netIncome;
   const jointGrossIncome = person.grossIncome + spouse.grossIncome;
   const jointDeductions = person.deductions + spouse.deductions;
   const jointResult = calculateTax(jointNetIncome, allowances, rules);
   const singleResult = calculateTax(person.netIncome, individualAllowances, rules);
-  const spouseSeparateResult = isMarried ? calculateTax(spouse.netIncome, a.basic, rules) : zeroTax();
+  const spouseSeparateResult = isMarried ? calculateTax(spouse.netIncome, spouseAllowances, rules) : zeroTax();
   const separateTaxPayable = singleResult.taxPayable + spouseSeparateResult.taxPayable;
   const result = isMarried ? jointResult : singleResult;
   const grossIncome = isMarried ? jointGrossIncome : person.grossIncome;
@@ -355,8 +367,23 @@ function calculate() {
     spouse,
     singleResult,
     spouseSeparateResult,
-    spouseAllowance: isMarried ? a.basic : 0,
+    spouseAllowance: spouseAllowances,
   });
+}
+
+function calculateSharedAllowancesForPrimary(rules) {
+  const a = rules.allowances;
+  const children = Math.min(9, value("children"));
+  const newborns = Math.min(children, value("newborns"));
+
+  return (
+    (value("singleParent") ? a.singleParent : 0) +
+    children * a.child +
+    newborns * a.newbornExtra +
+    value("siblings") * a.sibling +
+    value("disabledDependants") * a.disabledDependant +
+    parentAllowances("", a)
+  );
 }
 
 function emptyPerson() {
