@@ -187,6 +187,20 @@ h1 {
   background: var(--blue);
 }
 
+.housing-banner {
+  background: var(--gold);
+}
+
+.housing-section {
+  background: #fffaf0;
+}
+
+.housing-section input,
+.housing-section select {
+  border-color: #dfc27d;
+  background: #fffdf7;
+}
+
 .compact-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
