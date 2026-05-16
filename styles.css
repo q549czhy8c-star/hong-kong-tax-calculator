@@ -92,6 +92,12 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+.masthead-controls {
+  display: grid;
+  gap: 10px;
+  min-width: 340px;
+}
+
 .year-switch button {
   min-height: 44px;
   border: 0;
@@ -104,6 +110,37 @@ h1 {
 .year-switch button.active {
   color: #fff;
   background: var(--teal);
+}
+
+.action-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.action-bar button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--teal-dark);
+  font-size: 0.86rem;
+  font-weight: 800;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.action-bar button:focus,
+.action-bar button:hover {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(8, 125, 122, 0.12);
+}
+
+.save-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: right;
 }
 
 .content-grid {
@@ -396,5 +433,76 @@ dd {
 
   .year-switch {
     width: 100%;
+  }
+
+  .masthead-controls {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .action-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .app-shell {
+    padding: 0;
+  }
+
+  .workspace {
+    max-width: none;
+  }
+
+  .masthead {
+    align-items: start;
+    border-bottom: 1px solid #d8e0e7;
+    padding: 0 0 16px;
+  }
+
+  .masthead-controls,
+  .source-links {
+    display: none;
+  }
+
+  .content-grid {
+    display: block;
+  }
+
+  .input-panel,
+  .results-column {
+    box-shadow: none;
+  }
+
+  .input-panel {
+    display: none;
+  }
+
+  .results-column {
+    position: static;
+    margin-top: 18px;
+  }
+
+  .panel,
+  .result-hero {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .result-hero {
+    color: var(--ink);
+    background: #fff;
+  }
+
+  .result-label {
+    color: var(--muted);
+  }
+
+  #taxChart {
+    display: none;
   }
 }

@@ -94,6 +94,8 @@ const PRH_RENT_PRESETS = {
   nt: 74,
 };
 
+const STORAGE_KEY = "hkTaxCalculatorState";
+
 const ids = [
   "income",
   "otherIncome",
@@ -171,6 +173,15 @@ function value(id) {
 
 function setNumberValue(id, amount) {
   document.getElementById(id).value = Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0;
+}
+
+function setStatus(message) {
+  const status = document.getElementById("saveStatus");
+  status.textContent = message;
+  window.clearTimeout(setStatus.timer);
+  setStatus.timer = window.setTimeout(() => {
+    status.textContent = "";
+  }, 3000);
 }
 
 function cap(amount, max) {
@@ -547,6 +558,65 @@ function renderHousingWarnings(details) {
   });
 }
 
+function collectFormState() {
+  const state = { activeYear, fields: {} };
+
+  ids.forEach((id) => {
+    const field = document.getElementById(id);
+    state.fields[id] = field.type === "checkbox" ? field.checked : field.value;
+  });
+
+  return state;
+}
+
+function applyFormState(state) {
+  if (!state || !state.fields) return false;
+
+  activeYear = state.activeYear || activeYear;
+  document.querySelectorAll("[data-year]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.year === activeYear);
+  });
+
+  ids.forEach((id) => {
+    const field = document.getElementById(id);
+    if (!field || state.fields[id] === undefined) return;
+    if (field.type === "checkbox") {
+      field.checked = Boolean(state.fields[id]);
+    } else {
+      field.value = state.fields[id];
+    }
+  });
+
+  calculate();
+  return true;
+}
+
+function saveFormState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
+  setStatus("已保存到此瀏覽器");
+}
+
+function loadFormState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? applyFormState(JSON.parse(saved)) : false;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return false;
+  }
+}
+
+function clearFormState() {
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById("tax-form").reset();
+  activeYear = "2025";
+  document.querySelectorAll("[data-year]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.year === activeYear);
+  });
+  calculate();
+  setStatus("已清除並回復預設值");
+}
+
 function renderAdvice(result) {
   const list = document.getElementById("adviceList");
   const rules = TAX_YEARS[activeYear];
@@ -684,4 +754,13 @@ ids.forEach((id) => {
   document.getElementById(id).addEventListener("change", calculate);
 });
 
-calculate();
+document.getElementById("saveData").addEventListener("click", saveFormState);
+document.getElementById("clearData").addEventListener("click", clearFormState);
+document.getElementById("printPdf").addEventListener("click", () => {
+  setStatus("請在列印視窗選擇另存為 PDF");
+  window.print();
+});
+
+if (!loadFormState()) {
+  calculate();
+}

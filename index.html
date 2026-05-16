@@ -15,9 +15,17 @@
             <h1>香港薪俸稅計算機</h1>
             <p class="lede">按 IRD 2025/26 及 2026/27 免稅額、扣除額與稅率估算應繳稅款。</p>
           </div>
-          <div class="year-switch" role="group" aria-label="課稅年度">
-            <button class="active" type="button" data-year="2025">2025/26</button>
-            <button type="button" data-year="2026">2026/27</button>
+          <div class="masthead-controls">
+            <div class="year-switch" role="group" aria-label="課稅年度">
+              <button class="active" type="button" data-year="2025">2025/26</button>
+              <button type="button" data-year="2026">2026/27</button>
+            </div>
+            <div class="action-bar" aria-label="資料操作">
+              <button id="clearData" type="button">清除資料</button>
+              <button id="saveData" type="button">保存</button>
+              <button id="printPdf" type="button">轉成 PDF</button>
+            </div>
+            <p id="saveStatus" class="save-status" aria-live="polite"></p>
           </div>
         </header>
 
