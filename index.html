@@ -158,80 +158,84 @@
               </label>
             </section>
 
-            <div class="person-banner spouse-banner spouse-section" id="spouseBanner">配偶資料</div>
-            <section class="form-section compact-grid spouse-section" id="spouseSection">
-              <div class="section-heading wide">
-                <h2>配偶收入及扣除額</h2>
-                <span>合併評稅需要</span>
+            <div class="pair-layout" id="pairLayout">
+              <div class="pair-column spouse-column spouse-section" id="spouseColumn">
+                <div class="person-banner spouse-banner" id="spouseBanner">配偶資料</div>
+                <section class="form-section compact-grid spouse-section" id="spouseSection">
+                  <div class="section-heading wide">
+                    <h2>配偶收入及扣除額</h2>
+                    <span>合併評稅需要</span>
+                  </div>
+                  <label>
+                    <span>配偶薪金及花紅</span>
+                    <input id="spouseIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+                  </label>
+                  <label>
+                    <span>配偶其他應評稅入息</span>
+                    <input id="spouseOtherIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+                  </label>
+                  <label>
+                    <span>配偶強積金強制供款</span>
+                    <input id="spouseMpf" type="number" min="0" step="100" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶自我進修開支</span>
+                    <input id="spouseEducation" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶居所貸款利息</span>
+                    <input id="spouseHomeLoan" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶住宅租金</span>
+                    <input id="spouseRent" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶 VHIS 保費</span>
+                    <input id="spouseVhis" type="number" min="0" step="100" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶 VHIS 受保人數</span>
+                    <input id="spouseVhisPeople" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶年金 / TVC</span>
+                    <input id="spouseAnnuity" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶長者住宿照顧開支</span>
+                    <input id="spouseElderCare" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶認可慈善捐款</span>
+                    <input id="spouseDonations" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶輔助生育服務開支</span>
+                    <input id="spouseReproductive" type="number" min="0" step="1000" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶供養父母/祖父母 60+</span>
+                    <input id="spouseParents60" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶同住 60+</span>
+                    <input id="spouseParents60Living" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶供養父母/祖父母 55-59</span>
+                    <input id="spouseParents55" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label>
+                    <span>配偶同住 55-59</span>
+                    <input id="spouseParents55Living" type="number" min="0" step="1" value="0" />
+                  </label>
+                </section>
               </div>
-              <label>
-                <span>配偶薪金及花紅</span>
-                <input id="spouseIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
-              </label>
-              <label>
-                <span>配偶其他應評稅入息</span>
-                <input id="spouseOtherIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
-              </label>
-              <label>
-                <span>配偶強積金強制供款</span>
-                <input id="spouseMpf" type="number" min="0" step="100" value="0" />
-              </label>
-              <label>
-                <span>配偶自我進修開支</span>
-                <input id="spouseEducation" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶居所貸款利息</span>
-                <input id="spouseHomeLoan" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶住宅租金</span>
-                <input id="spouseRent" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶 VHIS 保費</span>
-                <input id="spouseVhis" type="number" min="0" step="100" value="0" />
-              </label>
-              <label>
-                <span>配偶 VHIS 受保人數</span>
-                <input id="spouseVhisPeople" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>配偶年金 / TVC</span>
-                <input id="spouseAnnuity" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶長者住宿照顧開支</span>
-                <input id="spouseElderCare" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶認可慈善捐款</span>
-                <input id="spouseDonations" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶輔助生育服務開支</span>
-                <input id="spouseReproductive" type="number" min="0" step="1000" value="0" />
-              </label>
-              <label>
-                <span>配偶供養父母/祖父母 60+</span>
-                <input id="spouseParents60" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>配偶同住 60+</span>
-                <input id="spouseParents60Living" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>配偶供養父母/祖父母 55-59</span>
-                <input id="spouseParents55" type="number" min="0" step="1" value="0" />
-              </label>
-              <label>
-                <span>配偶同住 55-59</span>
-                <input id="spouseParents55Living" type="number" min="0" step="1" value="0" />
-              </label>
-            </section>
 
-            <div class="person-banner housing-banner housing-group">公屋 / 居屋比較</div>
-            <section class="form-section compact-grid housing-section housing-group">
+              <div class="pair-column housing-column" id="housingColumn">
+                <div class="person-banner housing-banner">公屋 / 居屋比較</div>
+                <section class="form-section compact-grid housing-section">
               <div class="section-heading wide">
                 <h2>公屋 / 居屋長遠比較</h2>
                 <span>租金、除名及供樓</span>
@@ -379,6 +383,8 @@
                 <input id="feeGrowthRate" type="number" min="-20" max="30" step="0.1" value="2.5" />
               </label>
             </section>
+              </div>
+            </div>
           </form>
 
           <aside class="results-column">

@@ -191,26 +191,16 @@ h1 {
   background: var(--blue);
 }
 
-.spouse-banner,
-.spouse-section {
-  order: 20;
-}
-
-.spouse-section.visible {
-  grid-column: 1;
-}
-
 .housing-banner {
   background: var(--gold);
 }
 
-.housing-group {
+.pair-layout {
+  display: grid;
   grid-column: 1 / -1;
-  order: 21;
-}
-
-.housing-group.paired {
-  grid-column: 2;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--line);
 }
 
 .housing-section {
@@ -529,23 +519,21 @@ dd {
   list-style: none;
 }
 
-.spouse-section {
+.spouse-column {
   display: none;
 }
 
-.person-banner.spouse-section.visible {
+.pair-layout.paired {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pair-layout.paired .spouse-column {
   display: block;
 }
 
-.form-section.spouse-section.visible {
-  display: grid;
-}
-
 @media (max-width: 1180px) {
-  .spouse-section.visible,
-  .housing-group,
-  .housing-group.paired {
-    grid-column: 1 / -1;
+  .pair-layout.paired {
+    grid-template-columns: 1fr;
   }
 }
 

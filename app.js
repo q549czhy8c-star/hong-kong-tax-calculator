@@ -434,9 +434,7 @@ function renderSummary(result) {
   }
 
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
-  document.getElementById("spouseSection").classList.toggle("visible", result.isMarried);
-  document.getElementById("spouseBanner").classList.toggle("visible", result.isMarried);
-  document.querySelectorAll(".housing-group").forEach((item) => item.classList.toggle("paired", result.isMarried));
+  document.getElementById("pairLayout").classList.toggle("paired", result.isMarried);
   renderProgressiveFormula(result);
   renderSpouseFormula(result);
   renderAdvice(result);
