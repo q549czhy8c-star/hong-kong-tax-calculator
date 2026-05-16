@@ -10,6 +10,7 @@ A static web app for estimating Hong Kong salaries tax for 2025/26 and 2026/27.
 - 2025/26 tax reduction support
 - Public rental housing rent scenario comparison
 - HOS mortgage cash-flow comparison with home loan interest tax prompt
+- Selectable reference values for PRH rent, rates, HOS down payment, interest rate, repayment term, and management-fee budget
 
 ## Run Locally
 
@@ -21,3 +22,5 @@ Open `index.html` in a browser.
 - Hong Kong Inland Revenue Department 2026-27 Budget tax measures
 - Hong Kong Housing Authority Well-off Tenants Policies
 - Hong Kong Housing Authority subsidised sale flats mortgage arrangement notes
+- Hong Kong Housing Authority Housing in Figures 2025
+- Rating and Valuation Department rates notes

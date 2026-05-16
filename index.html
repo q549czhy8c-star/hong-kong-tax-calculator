@@ -219,8 +219,31 @@
                 <input id="prhNetRent" type="number" min="0" step="100" value="3200" />
               </label>
               <label>
+                <span>公屋租金參考</span>
+                <select id="prhRentPreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="hkIsland">房委會平均：香港島 HK$82/平方米</option>
+                  <option value="kowloon">房委會平均：九龍 HK$92/平方米</option>
+                  <option value="nt">房委會平均：新界 HK$74/平方米</option>
+                </select>
+              </label>
+              <label>
+                <span>室內樓面面積（平方米）</span>
+                <input id="prhFloorArea" type="number" min="1" step="1" value="35" />
+              </label>
+              <label>
                 <span>每月差餉</span>
                 <input id="prhRates" type="number" min="0" step="100" value="0" />
+              </label>
+              <label>
+                <span>差餉參考</span>
+                <select id="ratesPreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="none">HK$0</option>
+                  <option value="rvd5">按每月租值 5% 粗略估算</option>
+                  <option value="150">HK$150 / 月</option>
+                  <option value="300">HK$300 / 月</option>
+                </select>
               </label>
               <label>
                 <span>除名後申報人數</span>
@@ -251,16 +274,54 @@
                 <input id="hosDownPaymentPercent" type="number" min="0" max="100" step="1" value="10" />
               </label>
               <label>
+                <span>首期參考</span>
+                <select id="downPaymentPreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="5">綠表 / 居二綠表：5% 首期</option>
+                  <option value="10">白表 / 白居二：10% 首期</option>
+                  <option value="20">較保守：20% 首期</option>
+                </select>
+              </label>
+              <label>
                 <span>按揭年利率 (%)</span>
                 <input id="hosInterestRate" type="number" min="0" max="20" step="0.01" value="4.125" />
+              </label>
+              <label>
+                <span>利率參考</span>
+                <select id="interestPreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="4.125">中銀政府房屋計劃示例：4.125%</option>
+                  <option value="2.75">市場 P-plan 參考：約 2.75%</option>
+                  <option value="3.00">市場 P-plan 較高參考：約 3.00%</option>
+                  <option value="4.60">市場 H-plan 參考：約 4.60%</option>
+                </select>
               </label>
               <label>
                 <span>還款年期</span>
                 <input id="hosLoanYears" type="number" min="1" max="40" step="1" value="30" />
               </label>
               <label>
+                <span>最長還款年期參考</span>
+                <select id="loanYearsPreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="30">一手 / 二手資助出售單位：30 年</option>
+                  <option value="25">舊例或保守估算：25 年</option>
+                  <option value="20">較短還款：20 年</option>
+                </select>
+              </label>
+              <label>
                 <span>每月管理費 / 維修預算</span>
                 <input id="hosMonthlyFees" type="number" min="0" step="100" value="1800" />
+              </label>
+              <label>
+                <span>管理費 / 維修預算參考</span>
+                <select id="managementFeePreset">
+                  <option value="custom">手動輸入</option>
+                  <option value="1000">低位：HK$1,000 / 月</option>
+                  <option value="1800">中位：HK$1,800 / 月</option>
+                  <option value="2500">新居屋較高：HK$2,500 / 月</option>
+                  <option value="3500">壓力測試：HK$3,500 / 月</option>
+                </select>
               </label>
               <label>
                 <span>比較年期</span>
@@ -324,6 +385,8 @@
                 <a href="https://www.ird.gov.hk/eng/tax/budget.htm" target="_blank" rel="noreferrer">2026-27 預算案稅務措施</a>
                 <a href="https://www.housingauthority.gov.hk/tc/public-housing/tenancy-matters/income-and-asset-declaration/index.html" target="_blank" rel="noreferrer">房委會富戶政策</a>
                 <a href="https://www.housingauthority.gov.hk/en/home-ownership/information-for-home-owners/ownership-matters/change-in-mortgage-arrangement/index.html" target="_blank" rel="noreferrer">居屋按揭安排</a>
+                <a href="https://www.housingauthority.gov.hk/tc/common/pdf/about-us/publications-and-statistics/HIF2025.pdf" target="_blank" rel="noreferrer">房屋統計數字 2025</a>
+                <a href="https://www.rvd.gov.hk/en/our_services/rates.html" target="_blank" rel="noreferrer">差餉物業估價署差餉</a>
               </div>
               <p class="disclaimer">此工具只作估算，未涵蓋所有特殊評稅、海外稅務寬免、公屋個案審批、資產限制、居屋轉售限制或銀行按揭批核。</p>
             </section>

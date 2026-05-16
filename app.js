@@ -88,6 +88,12 @@ const PRH_INCOME_LIMITS = {
   10: 67180,
 };
 
+const PRH_RENT_PRESETS = {
+  hkIsland: 82,
+  kowloon: 92,
+  nt: 74,
+};
+
 const ids = [
   "income",
   "otherIncome",
@@ -127,7 +133,10 @@ const ids = [
   "prhMembers",
   "prhMonthlyIncome",
   "prhNetRent",
+  "prhRentPreset",
+  "prhFloorArea",
   "prhRates",
+  "ratesPreset",
   "removedMembers",
   "removedMonthlyIncome",
   "lostParents60",
@@ -135,9 +144,13 @@ const ids = [
   "lostParentLivingAllowance",
   "hosPrice",
   "hosDownPaymentPercent",
+  "downPaymentPreset",
   "hosInterestRate",
+  "interestPreset",
   "hosLoanYears",
+  "loanYearsPreset",
   "hosMonthlyFees",
+  "managementFeePreset",
   "comparisonYears",
 ];
 
@@ -154,6 +167,10 @@ function value(id) {
   if (field.type === "checkbox") return field.checked;
   if (field.tagName === "SELECT") return field.value;
   return Math.max(0, Number(field.value) || 0);
+}
+
+function setNumberValue(id, amount) {
+  document.getElementById(id).value = Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0;
 }
 
 function cap(amount, max) {
@@ -344,6 +361,7 @@ function renderSummary(result) {
 }
 
 function renderHousingComparison(taxResult) {
+  applyReferencePresets();
   const rules = TAX_YEARS[activeYear];
   const marginalRate = estimateMarginalRate(taxResult);
   const years = Math.max(1, value("comparisonYears"));
@@ -386,6 +404,33 @@ function renderHousingComparison(taxResult) {
     marginalRate,
     years,
   });
+}
+
+function applyReferencePresets() {
+  const rentPreset = value("prhRentPreset");
+  if (rentPreset !== "custom") {
+    setNumberValue("prhNetRent", (PRH_RENT_PRESETS[rentPreset] || 0) * value("prhFloorArea"));
+  }
+
+  const ratesPreset = value("ratesPreset");
+  if (ratesPreset === "none") {
+    setNumberValue("prhRates", 0);
+  } else if (ratesPreset === "rvd5") {
+    setNumberValue("prhRates", value("prhNetRent") * 0.05);
+  } else if (ratesPreset !== "custom") {
+    setNumberValue("prhRates", Number(ratesPreset));
+  }
+
+  applyNumericPreset("downPaymentPreset", "hosDownPaymentPercent");
+  applyNumericPreset("interestPreset", "hosInterestRate");
+  applyNumericPreset("loanYearsPreset", "hosLoanYears");
+  applyNumericPreset("managementFeePreset", "hosMonthlyFees");
+}
+
+function applyNumericPreset(selectId, inputId) {
+  const preset = value(selectId);
+  if (preset === "custom") return;
+  setNumberValue(inputId, Number(preset));
 }
 
 function calculatePrhRent(members, monthlyIncome, netRent, rates) {
@@ -477,7 +522,9 @@ function renderHousingWarnings(details) {
   const list = document.getElementById("housingWarnings");
   const warnings = [
     `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
+    "公屋租金參考採用房委會 2025 年按地區每平方米平均月租；實際租金、差餉和寬減以租約及繳款通知為準。",
     "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",
+    "首期、利率、年期和管理費參考值只作快速套用，銀行可按個案調整或拒批按揭。",
     "購買居屋 / 資助出售單位後，公屋戶主及成員須按房委會規定申報，並在指定階段交回單位或刪除戶籍。",
     "居屋比較是現金流估算，未計樓價升跌、轉售補地價、印花稅、裝修、律師費及保險。",
   ];
