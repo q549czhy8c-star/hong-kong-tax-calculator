@@ -622,8 +622,9 @@ function calculateLostParentTaxCost(taxResult, rules, allowanceFactor = 1) {
   if (lostAllowance <= 0) return 0;
 
   const adjustedAllowances = taxResult.allowances + (lostAllowance - baseLostAllowance);
-  const recalculated = calculateTax(taxResult.netIncome, Math.max(0, adjustedAllowances - lostAllowance), rules);
-  return Math.max(0, recalculated.taxPayable - taxResult.taxPayable);
+  const currentTax = calculateTax(taxResult.netIncome, adjustedAllowances, rules);
+  const removedTax = calculateTax(taxResult.netIncome, Math.max(0, adjustedAllowances - lostAllowance), rules);
+  return Math.max(0, removedTax.taxPayable - currentTax.taxPayable);
 }
 
 function calculateMortgage() {
@@ -972,6 +973,13 @@ function clearFormState() {
   setStatus("已清除並回復預設值");
 }
 
+function maybeSetForecastCustom(id) {
+  const forecastInputs = ["salaryGrowthRate", "prhRentGrowthRate", "parentAllowanceGrowthRate", "feeGrowthRate"];
+  if (forecastInputs.includes(id)) {
+    document.getElementById("forecastPreset").value = "custom";
+  }
+}
+
 function renderAdvice(result) {
   const list = document.getElementById("adviceList");
   const rules = TAX_YEARS[activeYear];
@@ -1115,8 +1123,14 @@ document.querySelectorAll("[data-tab]").forEach((button) => {
 });
 
 ids.forEach((id) => {
-  document.getElementById(id).addEventListener("input", calculate);
-  document.getElementById(id).addEventListener("change", calculate);
+  document.getElementById(id).addEventListener("input", () => {
+    maybeSetForecastCustom(id);
+    calculate();
+  });
+  document.getElementById(id).addEventListener("change", () => {
+    maybeSetForecastCustom(id);
+    calculate();
+  });
 });
 
 document.getElementById("saveData").addEventListener("click", saveFormState);
