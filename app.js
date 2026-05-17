@@ -328,6 +328,7 @@ function parentAllowances(prefix, allowances) {
 }
 
 function calculate() {
+  normalizeAssessmentStatus();
   const rules = TAX_YEARS[activeYear];
   const a = rules.allowances;
   const assessmentStatus = value("status");
@@ -455,6 +456,7 @@ function renderSummary(result) {
 
   document.getElementById("assessmentMode").textContent = result.assessmentMode;
   document.getElementById("pairLayout").classList.toggle("paired", result.isMarried);
+  document.getElementById("spouseColumn").classList.toggle("visible", result.isMarried);
   renderProgressiveFormula(result);
   renderSpouseFormula(result);
   renderAdvice(result);
@@ -947,8 +949,17 @@ function applyFormState(state) {
     }
   });
 
+  normalizeAssessmentStatus();
   calculate();
   return true;
+}
+
+function normalizeAssessmentStatus() {
+  const status = document.getElementById("status");
+  const validStatuses = ["single", "married", "marriedSeparate"];
+  if (!validStatuses.includes(status.value)) {
+    status.value = "single";
+  }
 }
 
 function saveFormState() {
