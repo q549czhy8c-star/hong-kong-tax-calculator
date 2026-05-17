@@ -95,9 +95,9 @@ const PRH_RENT_PRESETS = {
 };
 
 const FORECAST_PRESETS = {
-  base: { salary: 5, prhRent: 3.41, parentAllowance: 0, fee: 2.5 },
-  conservative: { salary: 3, prhRent: 3, parentAllowance: 0, fee: 2 },
-  stress: { salary: 5, prhRent: 5, parentAllowance: 0, fee: 4 },
+  base: { salary: 5, prhRent: 3.41, parentAllowance: 1.6, fee: 2.5 },
+  conservative: { salary: 3, prhRent: 3, parentAllowance: 1.6, fee: 2 },
+  stress: { salary: 5, prhRent: 5, parentAllowance: 1.6, fee: 4 },
 };
 
 const STORAGE_KEY = "hkTaxCalculatorState";
@@ -849,6 +849,7 @@ function renderHousingWarnings(details) {
   const warnings = [
     `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
     `除名稅務成本已按薪金及父母免稅額年增長逐年重算：首年約 ${money.format(Math.round(details.removalTaxProjection.firstYear))}，第 ${details.years} 年約 ${money.format(Math.round(details.removalTaxProjection.lastYear))}。`,
+    "父母免稅額年增長預設 1.6%，按 GovHK 2020/21 至 2026/27 近年表由 HK$50,000 增至 HK$55,000 折算。",
     "公屋租金參考採用房委會 2025 年按地區每平方米平均月租；實際租金、差餉和寬減以租約及繳款通知為準。",
     "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",
     "首期、利率、年期和管理費參考值只作快速套用，銀行可按個案調整或拒批按揭。",
