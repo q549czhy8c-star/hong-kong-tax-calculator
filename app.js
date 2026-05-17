@@ -95,9 +95,9 @@ const PRH_RENT_PRESETS = {
 };
 
 const FORECAST_PRESETS = {
-  base: { salary: 5, prhRent: 3.41, fee: 2.5 },
-  conservative: { salary: 3, prhRent: 3, fee: 2 },
-  stress: { salary: 5, prhRent: 5, fee: 4 },
+  base: { salary: 5, prhRent: 3.41, parentAllowance: 0, fee: 2.5 },
+  conservative: { salary: 3, prhRent: 3, parentAllowance: 0, fee: 2 },
+  stress: { salary: 5, prhRent: 5, parentAllowance: 0, fee: 4 },
 };
 
 const STORAGE_KEY = "hkTaxCalculatorState";
@@ -167,6 +167,7 @@ const ids = [
   "forecastPreset",
   "salaryGrowthRate",
   "prhRentGrowthRate",
+  "parentAllowanceGrowthRate",
   "feeGrowthRate",
 ];
 
@@ -526,12 +527,14 @@ function renderHousingComparison(taxResult) {
 
 function calculateRemovalTaxProjection(taxResult, rules, years) {
   const salaryGrowth = value("salaryGrowthRate") / 100;
+  const allowanceGrowth = value("parentAllowanceGrowthRate") / 100;
   const annualCosts = [];
 
   for (let year = 1; year <= years; year += 1) {
     const incomeFactor = Math.pow(1 + salaryGrowth, year - 1);
+    const allowanceFactor = Math.pow(1 + allowanceGrowth, year - 1);
     const projectedTax = projectedTaxResult(taxResult, incomeFactor, rules);
-    annualCosts.push(calculateLostParentTaxCost(projectedTax, rules));
+    annualCosts.push(calculateLostParentTaxCost(projectedTax, rules, allowanceFactor));
   }
 
   return {
@@ -574,6 +577,7 @@ function applyForecastPreset() {
   if (preset === "custom" || !FORECAST_PRESETS[preset]) return;
   setNumberValue("salaryGrowthRate", FORECAST_PRESETS[preset].salary);
   setNumberValue("prhRentGrowthRate", FORECAST_PRESETS[preset].prhRent);
+  setNumberValue("parentAllowanceGrowthRate", FORECAST_PRESETS[preset].parentAllowance);
   setNumberValue("feeGrowthRate", FORECAST_PRESETS[preset].fee);
 }
 
@@ -608,15 +612,17 @@ function calculatePrhRent(members, monthlyIncome, netRent, rates) {
   };
 }
 
-function calculateLostParentTaxCost(taxResult, rules) {
+function calculateLostParentTaxCost(taxResult, rules, allowanceFactor = 1) {
   const a = rules.allowances;
   const livingMultiplier = value("lostParentLivingAllowance") ? 1 : 0;
-  const lostAllowance =
+  const baseLostAllowance =
     value("lostParents60") * (a.parent60 + a.parent60Living * livingMultiplier) +
     value("lostParents55") * (a.parent55 + a.parent55Living * livingMultiplier);
+  const lostAllowance = baseLostAllowance * allowanceFactor;
   if (lostAllowance <= 0) return 0;
 
-  const recalculated = calculateTax(taxResult.netIncome, Math.max(0, taxResult.allowances - lostAllowance), rules);
+  const adjustedAllowances = taxResult.allowances + (lostAllowance - baseLostAllowance);
+  const recalculated = calculateTax(taxResult.netIncome, Math.max(0, adjustedAllowances - lostAllowance), rules);
   return Math.max(0, recalculated.taxPayable - taxResult.taxPayable);
 }
 
@@ -664,6 +670,7 @@ function renderForecastBudget(taxResult, housing) {
   const projectionYears = Math.min(30, Math.max(1, Math.round(value("comparisonYears"))));
   const salaryGrowth = value("salaryGrowthRate") / 100;
   const rentGrowth = value("prhRentGrowthRate") / 100;
+  const allowanceGrowth = value("parentAllowanceGrowthRate") / 100;
   const feeGrowth = value("feeGrowthRate") / 100;
   const monthlyRate = value("hosInterestRate") / 100 / 12;
   let mortgageBalance = housing.mortgage.loanAmount;
@@ -686,6 +693,7 @@ function renderForecastBudget(taxResult, housing) {
   for (let year = 1; year <= projectionYears; year += 1) {
     const incomeFactor = Math.pow(1 + salaryGrowth, year - 1);
     const rentFactor = Math.pow(1 + rentGrowth, year - 1);
+    const allowanceFactor = Math.pow(1 + allowanceGrowth, year - 1);
     const feeFactor = Math.pow(1 + feeGrowth, year - 1);
     const projectedTax = projectedTaxResult(taxResult, incomeFactor, rules);
     const currentRent = calculatePrhRent(
@@ -700,7 +708,7 @@ function renderForecastBudget(taxResult, housing) {
       value("prhNetRent") * rentFactor,
       value("prhRates") * rentFactor,
     ).monthlyRent;
-    const parentTaxCost = calculateLostParentTaxCost(projectedTax, rules);
+    const parentTaxCost = calculateLostParentTaxCost(projectedTax, rules, allowanceFactor);
     const amortization = annualMortgageAmortization(mortgageBalance, housing.mortgage.monthlyPayment, monthlyRate, year <= value("hosLoanYears"));
     mortgageBalance = amortization.endingBalance;
     const interest = amortization.interest;
@@ -840,7 +848,7 @@ function renderHousingWarnings(details) {
   const list = document.getElementById("housingWarnings");
   const warnings = [
     `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
-    `除名稅務成本已按薪金年增長逐年重算：首年約 ${money.format(Math.round(details.removalTaxProjection.firstYear))}，第 ${details.years} 年約 ${money.format(Math.round(details.removalTaxProjection.lastYear))}。`,
+    `除名稅務成本已按薪金及父母免稅額年增長逐年重算：首年約 ${money.format(Math.round(details.removalTaxProjection.firstYear))}，第 ${details.years} 年約 ${money.format(Math.round(details.removalTaxProjection.lastYear))}。`,
     "公屋租金參考採用房委會 2025 年按地區每平方米平均月租；實際租金、差餉和寬減以租約及繳款通知為準。",
     "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",
     "首期、利率、年期和管理費參考值只作快速套用，銀行可按個案調整或拒批按揭。",
