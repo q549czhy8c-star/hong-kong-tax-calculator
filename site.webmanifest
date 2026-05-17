@@ -1,0 +1,17 @@
+{
+  "name": "香港薪俸稅計算機",
+  "short_name": "薪俸稅",
+  "description": "Hong Kong salaries tax calculator.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#edf2f3",
+  "theme_color": "#087d7a",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

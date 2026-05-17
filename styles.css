@@ -63,6 +63,25 @@ select {
   text-transform: uppercase;
 }
 
+.brand-block {
+  min-width: 0;
+}
+
+.brand-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.app-icon {
+  width: clamp(52px, 7vw, 72px);
+  height: clamp(52px, 7vw, 72px);
+  flex: 0 0 auto;
+  border-radius: 20%;
+  box-shadow: 0 10px 24px rgba(20, 35, 48, 0.16);
+}
+
 h1,
 h2,
 p {

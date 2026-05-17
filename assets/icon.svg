@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Hong Kong Salaries Tax Calculator icon</title>
+  <desc id="desc">A teal app icon with a tax form, HK dollar mark, and calculation bars.</desc>
+  <defs>
+    <linearGradient id="bg" x1="96" y1="52" x2="426" y2="462" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0a938f"/>
+      <stop offset="1" stop-color="#075f5d"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="158" y1="102" x2="355" y2="411" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef6f6"/>
+    </linearGradient>
+    <filter id="shadow" x="80" y="70" width="352" height="390" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#12303a" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path fill="#0b6f6c" d="M61 339c72 53 159 80 260 80 51 0 95-6 132-19v112H113C51 512 0 461 0 399v-95c18 12 38 24 61 35Z" opacity=".28"/>
+
+  <g filter="url(#shadow)">
+    <path fill="url(#paper)" d="M153 96h165l74 74v222c0 18-15 33-33 33H153c-18 0-33-15-33-33V129c0-18 15-33 33-33Z"/>
+    <path fill="#dcebec" d="M318 96v55c0 11 9 20 20 20h54l-74-75Z"/>
+    <path fill="#cbdde0" d="M337 170h55v8h-49c-17 0-31-14-31-31V96h6v55c0 11 8 19 19 19Z" opacity=".72"/>
+  </g>
+
+  <path fill="#c45242" d="M160 142h98c7 0 12 5 12 12v46c0 7-5 12-12 12h-98c-7 0-12-5-12-12v-46c0-7 5-12 12-12Z"/>
+  <path fill="#fff" d="M177 193v-33h10v12h20v-12h10v33h-10v-13h-20v13h-10Zm47 0v-33h10v12l13-12h13l-17 15 18 18h-14l-13-14v14h-10Z"/>
+  <path fill="#fff" d="M255 198c-13 0-24-6-30-16l8-5c5 8 13 12 22 12 6 0 11-2 11-6 0-11-37-4-37-24 0-11 10-18 24-18 12 0 22 5 28 13l-8 6c-5-6-11-9-20-9-7 0-12 2-12 6 0 10 37 4 37 24 0 9-7 16-18 18v10h-8v-10Z" opacity=".94"/>
+
+  <path fill="#d8e0e7" d="M158 245h132a10 10 0 0 1 0 20H158a10 10 0 0 1 0-20Zm0 41h92a10 10 0 0 1 0 20h-92a10 10 0 0 1 0-20Zm0 41h72a10 10 0 0 1 0 20h-72a10 10 0 0 1 0-20Z"/>
+  <path fill="#087d7a" d="M309 330h22v52h-22z"/>
+  <path fill="#256f9f" d="M341 288h22v94h-22z"/>
+  <path fill="#b7831b" d="M277 353h22v29h-22z"/>
+  <path fill="#c45242" d="M277 394h86a9 9 0 0 1 0 18h-86a9 9 0 0 1 0-18Z" opacity=".86"/>
+  <path fill="#087d7a" d="M155 375h77a12 12 0 0 1 0 24h-77a12 12 0 0 1 0-24Z" opacity=".16"/>
+  <path fill="#075f5d" d="M157 381h50a6 6 0 0 1 0 12h-50a6 6 0 0 1 0-12Z"/>
+</svg>
