@@ -474,22 +474,22 @@ function renderHousingComparison(taxResult) {
   applyReferencePresets();
   const rules = TAX_YEARS[activeYear];
   const marginalRate = estimateMarginalRate(taxResult);
-  const years = Math.max(1, value("comparisonYears"));
+  const years = Math.min(30, Math.max(1, Math.round(value("comparisonYears"))));
   const months = years * 12;
   const currentPrh = calculatePrhRent(value("prhMembers"), value("prhMonthlyIncome"), value("prhNetRent"), value("prhRates"));
   const removedPrh = calculatePrhRent(value("removedMembers"), value("removedMonthlyIncome"), value("prhNetRent"), value("prhRates"));
-  const parentTaxCost = calculateLostParentTaxCost(taxResult, rules);
+  const removalTaxProjection = calculateRemovalTaxProjection(taxResult, rules, years);
   const mortgage = calculateMortgage();
   const annualHomeLoanTaxSaving = calculateHomeLoanTaxSaving(mortgage.firstYearInterest, rules, marginalRate);
 
   const currentPrhTotal = currentPrh.monthlyRent * months;
-  const removedPrhTotal = removedPrh.monthlyRent * months + parentTaxCost * years;
+  const removedPrhTotal = removedPrh.monthlyRent * months + removalTaxProjection.total;
   const hosTotal = mortgage.downPayment + (mortgage.monthlyPayment + value("hosMonthlyFees")) * months - annualHomeLoanTaxSaving * years;
 
   const fields = {
     currentPrhRent: currentPrh.monthlyRent,
     removedPrhRent: removedPrh.monthlyRent,
-    parentTaxCost,
+    parentTaxCost: removalTaxProjection.total,
     hosMortgage: mortgage.monthlyPayment,
     homeLoanTaxSaving: annualHomeLoanTaxSaving,
     currentPrhTotal,
@@ -511,6 +511,7 @@ function renderHousingComparison(taxResult) {
     removedPrh,
     mortgage,
     annualHomeLoanTaxSaving,
+    removalTaxProjection,
     marginalRate,
     years,
   });
@@ -519,8 +520,25 @@ function renderHousingComparison(taxResult) {
     removedPrh,
     mortgage,
     annualHomeLoanTaxSaving,
-    parentTaxCost,
+    parentTaxCost: removalTaxProjection.total,
   });
+}
+
+function calculateRemovalTaxProjection(taxResult, rules, years) {
+  const salaryGrowth = value("salaryGrowthRate") / 100;
+  const annualCosts = [];
+
+  for (let year = 1; year <= years; year += 1) {
+    const incomeFactor = Math.pow(1 + salaryGrowth, year - 1);
+    const projectedTax = projectedTaxResult(taxResult, incomeFactor, rules);
+    annualCosts.push(calculateLostParentTaxCost(projectedTax, rules));
+  }
+
+  return {
+    firstYear: annualCosts[0] || 0,
+    lastYear: annualCosts[annualCosts.length - 1] || 0,
+    total: annualCosts.reduce((sum, amount) => sum + amount, 0),
+  };
 }
 
 function applyReferencePresets() {
@@ -822,6 +840,7 @@ function renderHousingWarnings(details) {
   const list = document.getElementById("housingWarnings");
   const warnings = [
     `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
+    `除名稅務成本已按薪金年增長逐年重算：首年約 ${money.format(Math.round(details.removalTaxProjection.firstYear))}，第 ${details.years} 年約 ${money.format(Math.round(details.removalTaxProjection.lastYear))}。`,
     "公屋租金參考採用房委會 2025 年按地區每平方米平均月租；實際租金、差餉和寬減以租約及繳款通知為準。",
     "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",
     "首期、利率、年期和管理費參考值只作快速套用，銀行可按個案調整或拒批按揭。",
