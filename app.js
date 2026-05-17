@@ -520,25 +520,37 @@ function renderHousingComparison(taxResult) {
   const rules = TAX_YEARS[activeYear];
   const marginalRate = estimateMarginalRate(taxResult);
   const years = Math.min(30, Math.max(1, Math.round(value("comparisonYears"))));
-  const months = years * 12;
   const currentPrh = calculatePrhRent(value("prhMembers"), value("prhMonthlyIncome"), value("prhNetRent"), value("prhRates"));
   const removedPrh = calculatePrhRent(value("removedMembers"), value("removedMonthlyIncome"), value("prhNetRent"), value("prhRates"));
   const removalTaxProjection = calculateRemovalTaxProjection(taxResult, rules, years);
   const mortgage = calculateMortgage();
   const annualHomeLoanTaxSaving = calculateHomeLoanTaxSaving(mortgage.firstYearInterest, rules, marginalRate);
-
-  const currentPrhTotal = currentPrh.monthlyRent * months;
-  const removedPrhTotal = removedPrh.monthlyRent * months + removalTaxProjection.total;
-  const hosTotal = mortgage.downPayment + (mortgage.monthlyPayment + value("hosMonthlyFees")) * months - annualHomeLoanTaxSaving * years;
+  const forecast = renderForecastBudget(taxResult, {
+    currentPrh,
+    removedPrh,
+    mortgage,
+    annualHomeLoanTaxSaving,
+    parentTaxCost: removalTaxProjection.total,
+  });
+  const currentPrhTotal = forecast.totals.current;
+  const removedPrhTotal = forecast.totals.removed;
+  const removedWithAnnuityTotal = forecast.totals.removedWithAnnuity;
+  const hosTotal = forecast.totals.hos;
+  const annuityOffset = {
+    contribution: forecast.detailTotals.annuityContribution,
+    taxSaving: forecast.detailTotals.annuityTaxSaving,
+    uncoveredTaxCost: forecast.detailTotals.annuityUncoveredTaxCost,
+  };
 
   const fields = {
     currentPrhRent: currentPrh.monthlyRent,
     removedPrhRent: removedPrh.monthlyRent,
-    parentTaxCost: removalTaxProjection.total,
+    parentTaxCost: forecast.detailTotals.parentTaxCost,
     hosMortgage: mortgage.monthlyPayment,
     homeLoanTaxSaving: annualHomeLoanTaxSaving,
     currentPrhTotal,
     removedPrhTotal,
+    removedWithAnnuityTotal,
     hosTotal,
   };
 
@@ -549,6 +561,7 @@ function renderHousingComparison(taxResult) {
   renderHousingRecommendation([
     { label: "維持現公屋申報", total: currentPrhTotal },
     { label: "除名後保留公屋", total: removedPrhTotal },
+    { label: "除名 + 年金抵消稅項", total: removedWithAnnuityTotal },
     { label: "申請居屋供樓", total: hosTotal },
   ]);
   renderHousingWarnings({
@@ -557,15 +570,9 @@ function renderHousingComparison(taxResult) {
     mortgage,
     annualHomeLoanTaxSaving,
     removalTaxProjection,
+    annuityOffset,
     marginalRate,
     years,
-  });
-  renderForecastBudget(taxResult, {
-    currentPrh,
-    removedPrh,
-    mortgage,
-    annualHomeLoanTaxSaving,
-    parentTaxCost: removalTaxProjection.total,
   });
 }
 
@@ -723,12 +730,16 @@ function renderForecastBudget(taxResult, housing) {
   const totals = {
     current: 0,
     removed: 0,
+    removedWithAnnuity: 0,
     hos: housing.mortgage.downPayment,
   };
   const detailTotals = {
     currentRent: 0,
     removedRent: 0,
     parentTaxCost: 0,
+    annuityContribution: 0,
+    annuityTaxSaving: 0,
+    annuityUncoveredTaxCost: 0,
     mortgagePayments: 0,
     fees: 0,
     homeLoanSaving: 0,
@@ -754,6 +765,7 @@ function renderForecastBudget(taxResult, housing) {
       value("prhRates") * rentFactor,
     ).monthlyRent;
     const parentTaxCost = calculateLostParentTaxCost(projectedTax, rules, allowanceFactor);
+    const annuityOffset = calculateAnnualAnnuityOffset(parentTaxCost, rules, estimateMarginalRate(projectedTax));
     const amortization = annualMortgageAmortization(mortgageBalance, housing.mortgage.monthlyPayment, monthlyRate, year <= value("hosLoanYears"));
     mortgageBalance = amortization.endingBalance;
     const interest = amortization.interest;
@@ -762,14 +774,19 @@ function renderForecastBudget(taxResult, housing) {
     const fees = value("hosMonthlyFees") * feeFactor * 12;
     const currentAnnual = currentRent * 12;
     const removedAnnual = removedRent * 12 + parentTaxCost;
+    const removedWithAnnuityAnnual = removedRent * 12 + annuityOffset.contribution + annuityOffset.uncoveredTaxCost;
     const hosAnnual = mortgagePayments + fees - homeLoanSaving;
 
     totals.current += currentAnnual;
     totals.removed += removedAnnual;
+    totals.removedWithAnnuity += removedWithAnnuityAnnual;
     totals.hos += hosAnnual;
     detailTotals.currentRent += currentAnnual;
     detailTotals.removedRent += removedRent * 12;
     detailTotals.parentTaxCost += parentTaxCost;
+    detailTotals.annuityContribution += annuityOffset.contribution;
+    detailTotals.annuityTaxSaving += annuityOffset.taxSaving;
+    detailTotals.annuityUncoveredTaxCost += annuityOffset.uncoveredTaxCost;
     detailTotals.mortgagePayments += mortgagePayments;
     detailTotals.fees += fees;
     detailTotals.homeLoanSaving += homeLoanSaving;
@@ -779,8 +796,10 @@ function renderForecastBudget(taxResult, housing) {
       income: value("prhMonthlyIncome") * incomeFactor,
       current: currentAnnual,
       removed: removedAnnual,
+      removedWithAnnuity: removedWithAnnuityAnnual,
       hos: hosAnnual,
       parentTaxCost,
+      annuityContribution: annuityOffset.contribution,
       homeLoanSaving,
     });
   }
@@ -788,13 +807,33 @@ function renderForecastBudget(taxResult, housing) {
   document.getElementById("forecastTitle").textContent = `未來 ${projectionYears} 年支出預算`;
   document.getElementById("forecastCurrentLabel").textContent = `${projectionYears} 年現公屋總支出`;
   document.getElementById("forecastRemovedLabel").textContent = `${projectionYears} 年除名方案總支出`;
+  document.getElementById("forecastRemovedAnnuityLabel").textContent = `${projectionYears} 年年金抵消除名支出`;
   document.getElementById("forecastHosLabel").textContent = `${projectionYears} 年居屋現金流支出`;
   document.getElementById("forecastCurrentTotal").textContent = money.format(Math.round(totals.current));
   document.getElementById("forecastRemovedTotal").textContent = money.format(Math.round(totals.removed));
+  document.getElementById("forecastRemovedAnnuityTotal").textContent = money.format(Math.round(totals.removedWithAnnuity));
   document.getElementById("forecastHosTotal").textContent = money.format(Math.round(totals.hos));
   document.getElementById("forecastBestOption").textContent = forecastBestOption(totals);
   renderForecastBreakdowns(detailTotals, totals, projectionYears);
   renderForecastRows(rows);
+
+  return {
+    totals,
+    detailTotals,
+  };
+}
+
+function calculateAnnualAnnuityOffset(targetTaxCost, rules, marginalRate) {
+  const remainingLimit = Math.max(0, rules.deductions.annuity - value("annuity"));
+  const requiredContribution = marginalRate > 0 ? targetTaxCost / marginalRate : 0;
+  const contribution = Math.min(remainingLimit, requiredContribution);
+  const taxSaving = contribution * marginalRate;
+
+  return {
+    contribution,
+    taxSaving,
+    uncoveredTaxCost: Math.max(0, targetTaxCost - taxSaving),
+  };
 }
 
 function renderForecastBreakdowns(details, totals, years) {
@@ -808,6 +847,13 @@ function renderForecastBreakdowns(details, totals, years) {
     `失去父母免稅額稅務成本合計：${money.format(Math.round(details.parentTaxCost))}`,
     `公式：租金 + 重算稅款差額`,
     `${years} 年總支出：${money.format(Math.round(totals.removed))}`,
+  ]);
+  renderSimpleList("forecastAnnuityOffsetBreakdown", [
+    `年金 / TVC 供款合計：${money.format(Math.round(details.annuityContribution))}`,
+    `可抵消稅額合計：-${money.format(Math.round(details.annuityTaxSaving))}`,
+    `未能抵消稅項：${money.format(Math.round(details.annuityUncoveredTaxCost))}`,
+    `公式：除名租金 + 年金供款 + 未抵消稅項`,
+    `${years} 年總支出：${money.format(Math.round(totals.removedWithAnnuity))}`,
   ]);
   renderSimpleList("forecastHosBreakdown", [
     `首期：${money.format(Math.round(details.downPayment))}`,
@@ -859,6 +905,7 @@ function forecastBestOption(totals) {
   const options = [
     { label: "維持現公屋申報", total: totals.current },
     { label: "除名後保留公屋", total: totals.removed },
+    { label: "除名 + 年金抵消稅項", total: totals.removedWithAnnuity },
     { label: "申請居屋供樓", total: totals.hos },
   ];
   return options.sort((first, second) => first.total - second.total)[0].label;
@@ -877,6 +924,8 @@ function renderForecastRows(rows) {
       <td>${money.format(Math.round(row.removed))}</td>
       <td>${money.format(Math.round(row.hos))}</td>
       <td>${money.format(Math.round(row.parentTaxCost))}</td>
+      <td>${money.format(Math.round(row.annuityContribution))}</td>
+      <td>${money.format(Math.round(row.removedWithAnnuity))}</td>
       <td>-${money.format(Math.round(row.homeLoanSaving))}</td>
     `;
     body.appendChild(item);
@@ -894,6 +943,7 @@ function renderHousingWarnings(details) {
   const warnings = [
     `現公屋租金狀態：${details.currentPrh.status}；除名後狀態：${details.removedPrh.status}。`,
     `除名稅務成本已按薪金及父母免稅額年增長逐年重算：首年約 ${money.format(Math.round(details.removalTaxProjection.firstYear))}，第 ${details.years} 年約 ${money.format(Math.round(details.removalTaxProjection.lastYear))}。`,
+    `年金抵消方案：需要供款約 ${money.format(Math.round(details.annuityOffset.contribution))}，可抵消稅額約 ${money.format(Math.round(details.annuityOffset.taxSaving))}，未抵消稅項約 ${money.format(Math.round(details.annuityOffset.uncoveredTaxCost))}。`,
     "父母免稅額年增長預設 1.6%，按 GovHK 2020/21 至 2026/27 近年表由 HK$50,000 增至 HK$55,000 折算。",
     "公屋租金參考採用房委會 2025 年按地區每平方米平均月租；實際租金、差餉和寬減以租約及繳款通知為準。",
     "房委會由 2025 年 10 月申報周期起按 2.5 / 3.5 / 4.5 倍淨租金另加差餉計算富戶額外租金。",

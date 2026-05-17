@@ -463,6 +463,7 @@
                 <div><dt>首年供樓免稅額估算</dt><dd id="homeLoanTaxSaving">HK$0</dd></div>
                 <div><dt>現公屋總支出</dt><dd id="currentPrhTotal">HK$0</dd></div>
                 <div><dt>除名方案總支出</dt><dd id="removedPrhTotal">HK$0</dd></div>
+                <div><dt>年金抵消後除名支出</dt><dd id="removedWithAnnuityTotal">HK$0</dd></div>
                 <div><dt>居屋現金流支出</dt><dd id="hosTotal">HK$0</dd></div>
               </dl>
               <p id="housingRecommendation" class="housing-recommendation"></p>
@@ -474,6 +475,7 @@
               <dl class="summary-list">
                 <div><dt id="forecastCurrentLabel">現公屋總支出</dt><dd id="forecastCurrentTotal">HK$0</dd></div>
                 <div><dt id="forecastRemovedLabel">除名方案總支出</dt><dd id="forecastRemovedTotal">HK$0</dd></div>
+                <div><dt id="forecastRemovedAnnuityLabel">年金抵消除名支出</dt><dd id="forecastRemovedAnnuityTotal">HK$0</dd></div>
                 <div><dt id="forecastHosLabel">居屋現金流支出</dt><dd id="forecastHosTotal">HK$0</dd></div>
                 <div><dt>最低方案</dt><dd id="forecastBestOption">-</dd></div>
               </dl>
@@ -485,6 +487,10 @@
                 <div>
                   <h3>除名方案細項</h3>
                   <ul id="forecastRemovedBreakdown"></ul>
+                </div>
+                <div>
+                  <h3>年金抵消細項</h3>
+                  <ul id="forecastAnnuityOffsetBreakdown"></ul>
                 </div>
                 <div>
                   <h3>居屋細項</h3>
@@ -501,6 +507,8 @@
                       <th>除名</th>
                       <th>居屋</th>
                       <th>除名稅務成本</th>
+                      <th>年金供款</th>
+                      <th>抵消後除名</th>
                       <th>供樓利息扣稅</th>
                     </tr>
                   </thead>
