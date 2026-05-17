@@ -330,7 +330,9 @@ function parentAllowances(prefix, allowances) {
 function calculate() {
   const rules = TAX_YEARS[activeYear];
   const a = rules.allowances;
-  const isMarried = value("status") === "married";
+  const assessmentStatus = value("status");
+  const isMarried = assessmentStatus === "married" || assessmentStatus === "marriedSeparate";
+  const useJointAssessment = assessmentStatus === "married";
   const person = calculatePerson("", rules);
   const spouse = isMarried ? calculatePerson("spouse", rules) : emptyPerson();
   const sharedAllowances = calculateSharedAllowances(rules, isMarried);
@@ -344,32 +346,49 @@ function calculate() {
   const jointResult = calculateTax(jointNetIncome, allowances, rules);
   const singleResult = calculateTax(person.netIncome, individualAllowances, rules);
   const spouseSeparateResult = isMarried ? calculateTax(spouse.netIncome, spouseAllowances, rules) : zeroTax();
+  const separateResult = aggregateTaxResults(singleResult, spouseSeparateResult);
   const separateTaxPayable = singleResult.taxPayable + spouseSeparateResult.taxPayable;
-  const result = isMarried ? jointResult : singleResult;
+  const result = useJointAssessment ? jointResult : isMarried ? separateResult : singleResult;
+  const selectedTaxPayable = result.taxPayable;
   const grossIncome = isMarried ? jointGrossIncome : person.grossIncome;
   const deductions = isMarried ? jointDeductions : person.deductions;
+  const selectedAllowances = useJointAssessment ? allowances : isMarried ? individualAllowances + spouseAllowances : individualAllowances;
+  const selectedLabel = useJointAssessment ? "合併" : isMarried ? "分開" : "個人";
 
   renderSummary({
     grossIncome,
     deductions,
-    allowances,
+    allowances: selectedAllowances,
     netIncome: isMarried ? jointNetIncome : person.netIncome,
     netChargeable: result.netChargeable,
     progressive: result.progressive,
     standard: result.standard,
     baseTax: result.baseTax,
     reduction: result.reduction,
-    taxPayable: result.taxPayable,
+    taxPayable: selectedTaxPayable,
     jointTax: jointResult.taxPayable,
     separateTax: isMarried ? separateTaxPayable : singleResult.taxPayable,
-    assessmentMode: isMarried ? "合併" : "個人",
+    assessmentMode: selectedLabel,
     isMarried,
+    useJointAssessment,
     person,
     spouse,
     singleResult,
     spouseSeparateResult,
+    separateResult,
     spouseAllowance: spouseAllowances,
   });
+}
+
+function aggregateTaxResults(primaryResult, spouseResult) {
+  return {
+    netChargeable: primaryResult.netChargeable + spouseResult.netChargeable,
+    progressive: primaryResult.progressive + spouseResult.progressive,
+    standard: primaryResult.standard + spouseResult.standard,
+    baseTax: primaryResult.baseTax + spouseResult.baseTax,
+    reduction: primaryResult.reduction + spouseResult.reduction,
+    taxPayable: primaryResult.taxPayable + spouseResult.taxPayable,
+  };
 }
 
 function calculateSharedAllowancesForPrimary(rules) {
@@ -445,6 +464,15 @@ function renderSummary(result) {
 }
 
 function renderProgressiveFormula(result) {
+  if (result.isMarried && !result.useJointAssessment) {
+    const list = document.getElementById("progressiveFormula");
+    list.innerHTML = "";
+    appendFormulaGroup(list, "本人", result.singleResult.netChargeable, result.singleResult.progressive);
+    appendFormulaGroup(list, "配偶", result.spouseSeparateResult.netChargeable, result.spouseSeparateResult.progressive);
+    appendFormulaTotal(list, result.progressive);
+    return;
+  }
+
   renderFormulaList("progressiveFormula", result.netChargeable, result.progressive);
 }
 
@@ -454,8 +482,18 @@ function renderSpouseFormula(result) {
 
 function renderFormulaList(listId, netChargeable, progressive) {
   const list = document.getElementById(listId);
-  const bands = progressiveBreakdown(netChargeable);
   list.innerHTML = "";
+  appendFormulaGroup(list, "", netChargeable, progressive);
+}
+
+function appendFormulaGroup(list, label, netChargeable, progressive) {
+  const bands = progressiveBreakdown(netChargeable);
+  if (label) {
+    const heading = document.createElement("li");
+    heading.innerHTML = `<strong>${label}</strong>`;
+    list.appendChild(heading);
+  }
+
   bands.forEach((band) => {
     const item = document.createElement("li");
     const range =
@@ -466,8 +504,12 @@ function renderFormulaList(listId, netChargeable, progressive) {
     list.appendChild(item);
   });
 
+  appendFormulaTotal(list, progressive, label ? `${label}累進稅款` : "累進稅款合計");
+}
+
+function appendFormulaTotal(list, progressive, label = "累進稅款合計") {
   const total = document.createElement("li");
-  total.innerHTML = `累進稅款合計：<strong>${money.format(Math.round(progressive))}</strong>`;
+  total.innerHTML = `${label}：<strong>${money.format(Math.round(progressive))}</strong>`;
   list.appendChild(total);
 }
 
@@ -993,12 +1035,17 @@ function renderAdvice(result) {
 
   if (result.isMarried) {
     const difference = result.separateTax - result.jointTax;
-    if (difference > 0) {
-      items.push(`按現有資料，合併評稅比粗略分開評稅少約 ${money.format(Math.round(difference))}。`);
-    } else if (difference < 0) {
-      items.push(`按現有資料，分開評稅或會比合併少約 ${money.format(Math.round(Math.abs(difference)))}。`);
+    const selectedAlternative = result.useJointAssessment ? "分開評稅" : "合併評稅";
+    const selectedCost = result.useJointAssessment ? result.jointTax : result.separateTax;
+    const alternativeCost = result.useJointAssessment ? result.separateTax : result.jointTax;
+    const alternativeDifference = alternativeCost - selectedCost;
+
+    if (alternativeDifference > 0) {
+      items.push(`另一方案「${selectedAlternative}」估計要多交約 ${money.format(Math.round(alternativeDifference))}，現選方案較低。`);
+    } else if (alternativeDifference < 0) {
+      items.push(`另一方案「${selectedAlternative}」估計可少交約 ${money.format(Math.round(Math.abs(alternativeDifference)))}，建議考慮轉用。`);
     } else {
-      items.push("合併與分開評稅暫時相若；可再輸入配偶扣除額比較。");
+      items.push(`另一方案「${selectedAlternative}」與現選方案暫時相若；可再輸入配偶扣除額比較。`);
     }
   }
 
@@ -1007,6 +1054,7 @@ function renderAdvice(result) {
   }
 
   addCapAdvice(items, "年金 / TVC", value("annuity"), d.annuity, rate);
+  addAnnuityPlanAdvice(items, value("annuity"), d.annuity, rate, "本人");
   addCapAdvice(items, "自我進修開支", value("education"), d.education, rate);
   addCapAdvice(items, "VHIS 保費", value("vhis"), d.vhisPerPerson * value("vhisPeople"), rate);
   addCapAdvice(items, "長者住宿照顧開支", value("elderCare"), d.elderCare, rate);
@@ -1014,6 +1062,7 @@ function renderAdvice(result) {
 
   if (result.isMarried) {
     addCapAdvice(items, "配偶年金 / TVC", value("spouseAnnuity"), d.annuity, rate);
+    addAnnuityPlanAdvice(items, value("spouseAnnuity"), d.annuity, rate, "配偶");
     addCapAdvice(items, "配偶 VHIS 保費", value("spouseVhis"), d.vhisPerPerson * value("spouseVhisPeople"), rate);
   }
 
@@ -1042,6 +1091,15 @@ function addCapAdvice(items, label, used, limit, rate) {
   if (limit <= 0 || remaining <= 0 || rate <= 0) return;
   const saving = remaining * rate;
   items.push(`${label}仍有約 ${money.format(Math.round(remaining))} 上限；若合資格，按現時邊際稅率可慳約 ${money.format(Math.round(saving))}。`);
+}
+
+function addAnnuityPlanAdvice(items, used, limit, rate, owner) {
+  if (used > 0 || rate <= 0) return;
+  const scenarios = [12000, 30000, limit].map((amount) => {
+    const saving = Math.min(amount, limit) * rate;
+    return `${money.format(amount)} 可慳約 ${money.format(Math.round(saving))}`;
+  });
+  items.push(`${owner}未輸入年金 / TVC：可比較 ${scenarios.join("、")}；上限為每年 ${money.format(limit)}。`);
 }
 
 function estimateMarginalRate(result) {
