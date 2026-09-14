@@ -390,6 +390,7 @@ select:focus {
 .summary-panel,
 .rules-panel,
 .advice-panel,
+.optimizer-panel,
 .housing-panel,
 .forecast-panel {
   padding: 18px;
@@ -495,6 +496,124 @@ dd {
   color: var(--ink);
   font-weight: 800;
   background: var(--soft);
+}
+
+.optimizer-score {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.optimizer-score > div,
+.declaration-grid section,
+.opportunity-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--soft);
+}
+
+.optimizer-score span,
+.opportunity-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.optimizer-score strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.5rem;
+}
+
+.declaration-grid,
+.opportunity-cards {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 20px;
+}
+
+.declaration-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.declaration-grid h3,
+.opportunity-card h3 {
+  margin: 0 0 10px;
+  font-size: 0.94rem;
+}
+
+.declaration-grid ul,
+.opportunity-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  list-style: none;
+}
+
+.opportunity-card {
+  display: grid;
+  gap: 10px;
+}
+
+.opportunity-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.status-pill {
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 850;
+  background: var(--blue);
+  white-space: nowrap;
+}
+
+.status-pill.eligible,
+.status-pill.already-maximized {
+  background: var(--teal);
+}
+
+.status-pill.requires-confirmation {
+  background: var(--gold);
+}
+
+.status-pill.not-eligible {
+  background: var(--muted);
+}
+
+.opportunity-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.opportunity-numbers div {
+  border-radius: 6px;
+  padding: 10px;
+  background: #fff;
+}
+
+.opportunity-numbers span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.opportunity-numbers strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.96rem;
 }
 
 .table-wrap {
@@ -665,6 +784,12 @@ dd {
   }
 
   .forecast-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .optimizer-score,
+  .declaration-grid,
+  .opportunity-numbers {
     grid-template-columns: 1fr;
   }
 }

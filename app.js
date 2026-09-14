@@ -446,6 +446,7 @@ function renderSummary(result) {
   renderSpouseFormula(result);
   renderHousingBenefitExplanation(result);
   renderAdvice(result);
+  renderOptimizer(result);
   renderHousingComparison(result);
   renderNotes();
   drawChart(result);
@@ -1167,6 +1168,132 @@ function renderAdvice(result) {
     const item = document.createElement("li");
     item.textContent = text;
     list.appendChild(item);
+  });
+}
+
+function buildOptimizerContext(result) {
+  const rules = TAX_YEARS[activeYear];
+  const spouseDonations = result.isMarried ? value("spouseDonations") : 0;
+  const donationCap = Math.max(0, (result.grossIncome - result.deductions + result.person.donations + result.spouse.donations) * 0.35);
+  const housingBenefit = { ...result.person.employment.housingBenefit };
+  const normalCashDelta = Math.max(0, result.person.employment.normalCashScenarioIncome - result.person.employment.assessableIncome);
+  if (normalCashDelta > 0) {
+    housingBenefit.normalCashScenarioTaxPayable = calculateTax(result.netIncome + normalCashDelta, result.allowances, rules).taxPayable;
+  }
+
+  return {
+    taxEngine: TAX_ENGINE,
+    taxRules: TAX_RULES,
+    yearRules: rules,
+    netIncome: result.netIncome,
+    allowances: result.allowances,
+    baseTax: {
+      taxPayable: result.taxPayable,
+    },
+    claims: {
+      mpf: value("mpf") + (result.isMarried ? value("spouseMpf") : 0),
+      education: value("education") + (result.isMarried ? value("spouseEducation") : 0),
+      homeLoan: value("homeLoan") + (result.isMarried ? value("spouseHomeLoan") : 0),
+      rent: value("rent") + (result.isMarried ? value("spouseRent") : 0),
+      vhis: value("vhis") + (result.isMarried ? value("spouseVhis") : 0),
+      annuity: value("annuity") + (result.isMarried ? value("spouseAnnuity") : 0),
+      elderCare: value("elderCare") + (result.isMarried ? value("spouseElderCare") : 0),
+      donations: value("donations") + spouseDonations,
+      reproductive: value("reproductive") + (result.isMarried ? value("spouseReproductive") : 0),
+    },
+    limits: {
+      donationCap,
+    },
+    facts: {
+      children: value("children"),
+      vhisPeople: value("vhisPeople") + (result.isMarried ? value("spouseVhisPeople") : 0),
+    },
+    housingBenefit,
+    spouse: {
+      isMarried: result.isMarried,
+      jointTax: result.jointTax,
+      separateTax: result.separateTax,
+    },
+  };
+}
+
+function renderOptimizer(result) {
+  const optimization = window.HKTaxOptimizer.buildOptimization(buildOptimizerContext(result));
+  document.getElementById("optimizationScore").textContent = `${optimization.score} / 100`;
+  document.getElementById("potentialSaving").textContent = money.format(Math.round(optimization.potentialAdditionalSaving));
+  renderDeclarationList("declareConfirmed", optimization.declarationSummary.confirmed.slice(0, 7));
+  renderDeclarationList("declarePossible", optimization.declarationSummary.possible.slice(0, 7));
+  renderDeclarationList("declareNotApplicable", optimization.declarationSummary.notApplicable.slice(0, 7));
+  renderOpportunityCards(optimization.opportunities.slice(0, 8));
+}
+
+function renderDeclarationList(id, items) {
+  const list = document.getElementById(id);
+  list.innerHTML = "";
+  items.forEach((item) => {
+    const row = document.createElement("li");
+    row.textContent = `${item.name}：${item.amount ? money.format(Math.round(item.amount)) : "未輸入"} - ${item.reason}`;
+    list.appendChild(row);
+  });
+}
+
+function renderOpportunityCards(opportunities) {
+  const container = document.getElementById("opportunityCards");
+  container.innerHTML = "";
+
+  opportunities.forEach((opportunity) => {
+    const card = document.createElement("article");
+    card.className = "opportunity-card";
+
+    const header = document.createElement("header");
+    const titleWrap = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = opportunity.name;
+    const meta = document.createElement("span");
+    meta.className = "opportunity-meta";
+    meta.textContent = `Status: ${opportunity.eligibilityStatus}`;
+    titleWrap.append(title, meta);
+
+    const status = document.createElement("span");
+    status.className = `status-pill ${opportunity.eligibilityStatus.toLowerCase().replaceAll("_", "-")}`;
+    status.textContent = opportunity.eligibilityStatus;
+    header.append(titleWrap, status);
+
+    const numbers = document.createElement("div");
+    numbers.className = "opportunity-numbers";
+    [
+      ["Current Claim", opportunity.currentClaim],
+      ["Potential Claim", opportunity.maximumPotentialClaim],
+      ["Estimated Saving", opportunity.estimatedTaxSaving],
+    ].forEach(([label, amount]) => {
+      const cell = document.createElement("div");
+      const cellLabel = document.createElement("span");
+      const cellValue = document.createElement("strong");
+      cellLabel.textContent = label;
+      cellValue.textContent = money.format(Math.round(amount));
+      cell.append(cellLabel, cellValue);
+      numbers.appendChild(cell);
+    });
+
+    const details = document.createElement("ul");
+    [
+      `Why: ${opportunity.reason}`,
+      `Action: ${opportunity.actionRequired}`,
+      `Documents: ${opportunity.documentsRequired.join("、") || "按個案確認"}`,
+    ].forEach((text) => {
+      const item = document.createElement("li");
+      item.textContent = text;
+      details.appendChild(item);
+    });
+
+    const source = document.createElement("a");
+    source.href = opportunity.officialIRDReference;
+    source.target = "_blank";
+    source.rel = "noreferrer";
+    source.textContent = "IRD reference";
+
+    card.append(header, numbers, details, source);
+    container.appendChild(card);
   });
 }
 

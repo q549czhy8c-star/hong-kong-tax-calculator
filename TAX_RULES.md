@@ -20,6 +20,7 @@ Primary rule data lives in `tax-rules.js`. UI code must not redefine tax-law con
 - Domestic rent and home-loan interest use HK$100,000 as the base ceiling and HK$120,000 only when a qualifying child condition may apply.
 - Rental Reimbursement / employer-provided accommodation is modeled separately from ordinary deductions.
 - The rules tab displays active tax year, rule version, and last verified date.
+- Tax opportunity savings are produced by full before/after tax-engine comparisons in `tax-optimizer.js`.
 
 ## Remaining Verification Items
 

@@ -497,6 +497,7 @@
 
             <nav class="result-tabs" aria-label="結果分頁">
               <button class="active" type="button" data-tab="overview">總覽</button>
+              <button type="button" data-tab="optimizer">優化</button>
               <button type="button" data-tab="spouse">配偶</button>
               <button type="button" data-tab="housing">住屋</button>
               <button type="button" data-tab="forecast">預算</button>
@@ -532,6 +533,36 @@
             <section class="panel advice-panel tab-panel active" data-panel="overview">
               <h2>扣減稅款建議</h2>
               <ul id="adviceList"></ul>
+            </section>
+
+            <section class="panel optimizer-panel tab-panel" data-panel="optimizer">
+              <div class="optimizer-score">
+                <div>
+                  <span>Tax Optimization Score</span>
+                  <strong id="optimizationScore">0 / 100</strong>
+                </div>
+                <div>
+                  <span>潛在額外節省</span>
+                  <strong id="potentialSaving">HK$0</strong>
+                </div>
+              </div>
+              <h2>你應考慮申報</h2>
+              <div class="declaration-grid">
+                <section>
+                  <h3>可考慮申報</h3>
+                  <ul id="declareConfirmed"></ul>
+                </section>
+                <section>
+                  <h3>需要確認</h3>
+                  <ul id="declarePossible"></ul>
+                </section>
+                <section>
+                  <h3>暫不適用</h3>
+                  <ul id="declareNotApplicable"></ul>
+                </section>
+              </div>
+              <h2>Tax Opportunity Cards</h2>
+              <div id="opportunityCards" class="opportunity-cards"></div>
             </section>
 
             <section class="panel spouse-panel tab-panel" data-panel="spouse">
@@ -637,6 +668,7 @@
     </main>
     <script src="tax-rules.js"></script>
     <script src="tax-engine.js"></script>
+    <script src="tax-optimizer.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -15,6 +15,7 @@ A static web app for estimating Hong Kong salaries tax for 2025/26 and 2026/27.
 - Versioned 2025/26 and 2026/27 tax rules with source metadata
 - Advanced employment income breakdown for the primary taxpayer
 - Rental Reimbursement / employer-provided housing benefit rental-value estimate with eligibility warnings
+- Deterministic tax opportunity cards and declaration summary
 - Regression tests for the pure tax engine
 
 ## Run Locally
@@ -24,13 +25,14 @@ Open `index.html` in a browser.
 ## Test
 
 ```bash
-node --test tests/tax-engine.test.js
+node --test tests/*.test.js
 ```
 
 ## Key Files
 
 - `tax-rules.js` - versioned Hong Kong Salaries Tax rule data and official source metadata
 - `tax-engine.js` - pure tax calculation helpers shared by the app and tests
+- `tax-optimizer.js` - deterministic declaration summary and opportunity-card engine
 - `app.js` - browser UI orchestration, state, projection, and rendering logic
 - `AUDIT.md` - repository audit and migration plan
 - `TAX_RULES.md` - tax-rule notes and verification status

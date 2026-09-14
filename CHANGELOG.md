@@ -4,6 +4,18 @@
 
 ### Added
 
+- `tax-optimizer.js` deterministic opportunity engine.
+- Optimizer UI tab with Tax Optimization Score, declaration summary, and tax opportunity cards.
+- Full-engine optimizer regression tests in `tests/tax-optimizer.test.js`.
+
+### Changed
+
+- README test command now runs all test files.
+
+## 2026-09-14 Initial Enhancement Phase
+
+### Added
+
 - `tax-rules.js` with versioned 2025/26 and 2026/27 Hong Kong Salaries Tax rules, source metadata, and last-verified date.
 - `tax-engine.js` with pure calculation functions for progressive tax, standard tax, reductions, housing deduction caps, housing benefits, and full-engine scenario comparisons.
 - Advanced employment income inputs and primary taxpayer housing-benefit treatment.
