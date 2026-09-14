@@ -54,6 +54,94 @@
                 <span>其他應評稅入息</span>
                 <input id="otherIncome" type="number" min="0" step="1000" value="0" inputmode="decimal" />
               </label>
+              <label>
+                <span>入息模式</span>
+                <select id="employmentMode">
+                  <option value="simple">簡易：輸入全年總額</option>
+                  <option value="advanced">進階：拆分入息及住屋福利</option>
+                </select>
+              </label>
+              <label class="advanced-income">
+                <span>基本薪金</span>
+                <input id="basicSalary" type="number" min="0" step="1000" value="720000" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>花紅</span>
+                <input id="bonus" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>佣金</span>
+                <input id="commission" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>董事袍金</span>
+                <input id="directorFee" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>現金津貼</span>
+                <input id="cashAllowances" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>房屋津貼（現金）</span>
+                <input id="housingAllowance" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>股份獎賞 / 認股權</span>
+                <input id="equityAwards" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>約滿酬金 / 退休金</span>
+                <input id="gratuity" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>其他應課稅福利</span>
+                <input id="taxableBenefits" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income">
+                <span>住屋福利處理</span>
+                <select id="housingTreatment">
+                  <option value="none">沒有住屋福利</option>
+                  <option value="cashAllowance">普通現金房屋津貼</option>
+                  <option value="qualifyingRentalReimbursement">合資格租金發還（需確認）</option>
+                  <option value="employerProvided">僱主提供住所（需確認）</option>
+                </select>
+              </label>
+              <label class="advanced-income housing-benefit-input">
+                <span>僱主發還 / 支付租金</span>
+                <input id="rentalReimbursement" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income housing-benefit-input">
+                <span>全年實付租金</span>
+                <input id="actualRent" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income housing-benefit-input">
+                <span>僱員付予僱主租金</span>
+                <input id="employeeRentPaid" type="number" min="0" step="1000" value="0" inputmode="decimal" />
+              </label>
+              <label class="advanced-income housing-benefit-input">
+                <span>住屋福利月份</span>
+                <input id="housingMonths" type="number" min="0" max="12" step="1" value="12" />
+              </label>
+              <label class="advanced-income housing-benefit-input">
+                <span>住所類型</span>
+                <select id="accommodationType">
+                  <option value="residentialUnit">住宅單位 / 服務式住宅（10%）</option>
+                  <option value="hotelTwoRooms">酒店 / 宿舍兩房（8%）</option>
+                  <option value="hotelOneRoom">酒店 / 宿舍一房（4%）</option>
+                </select>
+              </label>
+              <label class="checkbox-row advanced-income housing-benefit-input">
+                <input id="employerScheme" type="checkbox" />
+                <span>僱主有正式租金發還安排</span>
+              </label>
+              <label class="checkbox-row advanced-income housing-benefit-input">
+                <input id="employerControl" type="checkbox" />
+                <span>僱主有審批 / 控制租約及付款證明</span>
+              </label>
+              <label class="checkbox-row advanced-income housing-benefit-input">
+                <input id="rentDocuments" type="checkbox" />
+                <span>有租約、印花及付款紀錄</span>
+              </label>
             </section>
 
             <section class="form-section">
@@ -419,6 +507,7 @@
               <h2>計算拆解</h2>
               <dl class="summary-list">
                 <div><dt>總入息</dt><dd id="grossIncome">HK$0</dd></div>
+                <div><dt>住屋福利租值</dt><dd id="housingRentalValue">HK$0</dd></div>
                 <div><dt>可扣除開支</dt><dd id="deductions">HK$0</dd></div>
                 <div><dt>免稅額</dt><dd id="allowances">HK$0</dd></div>
                 <div><dt>應課稅入息實額</dt><dd id="netChargeable">HK$0</dd></div>
@@ -433,6 +522,10 @@
               <div class="formula-box">
                 <h3>累進稅率算式</h3>
                 <ul id="progressiveFormula"></ul>
+              </div>
+              <div class="formula-box">
+                <h3>住屋福利 / 租金發還</h3>
+                <ul id="housingBenefitExplanation"></ul>
               </div>
             </section>
 
@@ -542,6 +635,8 @@
         </div>
       </section>
     </main>
+    <script src="tax-rules.js"></script>
+    <script src="tax-engine.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

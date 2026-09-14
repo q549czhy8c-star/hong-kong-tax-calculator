@@ -12,10 +12,29 @@ A static web app for estimating Hong Kong salaries tax for 2025/26 and 2026/27.
 - HOS mortgage cash-flow comparison with home loan interest tax prompt
 - Selectable reference values for PRH rent, rates, HOS down payment, interest rate, repayment term, and management-fee budget
 - 30-year scenario budget with salary growth, PRH rent growth, fee growth, mortgage interest, and tax effects
+- Versioned 2025/26 and 2026/27 tax rules with source metadata
+- Advanced employment income breakdown for the primary taxpayer
+- Rental Reimbursement / employer-provided housing benefit rental-value estimate with eligibility warnings
+- Regression tests for the pure tax engine
 
 ## Run Locally
 
 Open `index.html` in a browser.
+
+## Test
+
+```bash
+node --test tests/tax-engine.test.js
+```
+
+## Key Files
+
+- `tax-rules.js` - versioned Hong Kong Salaries Tax rule data and official source metadata
+- `tax-engine.js` - pure tax calculation helpers shared by the app and tests
+- `app.js` - browser UI orchestration, state, projection, and rendering logic
+- `AUDIT.md` - repository audit and migration plan
+- `TAX_RULES.md` - tax-rule notes and verification status
+- `ENHANCEMENT_PLAN.md` - phased implementation plan
 
 ## Sources
 

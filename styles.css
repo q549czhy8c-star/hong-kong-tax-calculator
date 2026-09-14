@@ -237,6 +237,22 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.advanced-income {
+  display: none;
+}
+
+.input-panel.advanced-mode .advanced-income {
+  display: grid;
+}
+
+.input-panel.advanced-mode .housing-benefit-input {
+  display: none;
+}
+
+.input-panel.advanced-mode .housing-benefit-input.visible-benefit-field {
+  display: grid;
+}
+
 .wide {
   grid-column: 1 / -1;
 }

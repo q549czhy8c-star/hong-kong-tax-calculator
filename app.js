@@ -1,79 +1,7 @@
-const TAX_YEARS = {
-  2025: {
-    label: "2025/26",
-    allowances: {
-      basic: 132000,
-      married: 264000,
-      singleParent: 132000,
-      child: 130000,
-      newbornExtra: 130000,
-      sibling: 37500,
-      parent60: 50000,
-      parent55: 25000,
-      parent60Living: 50000,
-      parent55Living: 25000,
-      disability: 75000,
-      disabledDependant: 75000,
-    },
-    deductions: {
-      mpf: 18000,
-      education: 100000,
-      elderCare: 100000,
-      homeLoan: 120000,
-      rent: 120000,
-      vhisPerPerson: 8000,
-      annuity: 60000,
-      reproductive: 100000,
-    },
-    taxReduction: 3000,
-    notes: [
-      "薪俸稅以累進稅率或標準稅率計算，取較低者。",
-      "2025/26 年度有 100% 一次性寬減，上限 HK$3,000。",
-      "子女免稅額最多計算首 9 名子女；新生子女額外免稅額按 2025/26 規則計一次。",
-    ],
-  },
-  2026: {
-    label: "2026/27",
-    allowances: {
-      basic: 145000,
-      married: 290000,
-      singleParent: 145000,
-      child: 140000,
-      newbornExtra: 140000,
-      sibling: 37500,
-      parent60: 55000,
-      parent55: 27500,
-      parent60Living: 55000,
-      parent55Living: 27500,
-      disability: 75000,
-      disabledDependant: 75000,
-    },
-    deductions: {
-      mpf: 18000,
-      education: 100000,
-      elderCare: 110000,
-      homeLoan: 120000,
-      rent: 120000,
-      vhisPerPerson: 8000,
-      annuity: 60000,
-      reproductive: 100000,
-    },
-    taxReduction: 0,
-    notes: [
-      "2026/27 起基本、已婚、單親、子女及供養父母/祖父母免稅額按預算案建議提高。",
-      "長者住宿照顧開支扣除上限提高至 HK$110,000。",
-      "合資格出生後首兩個課稅年度子女可計額外子女免稅額。",
-    ],
-  },
-};
-
-const PROGRESSIVE_BANDS = [
-  { limit: 50000, rate: 0.02 },
-  { limit: 50000, rate: 0.06 },
-  { limit: 50000, rate: 0.1 },
-  { limit: 50000, rate: 0.14 },
-  { limit: Infinity, rate: 0.17 },
-];
+const TAX_RULES = window.HK_TAX_RULES;
+const TAX_ENGINE = window.HKTaxEngine;
+const TAX_YEARS = TAX_RULES.years;
+const PROGRESSIVE_BANDS = TAX_RULES.progressiveBands;
 
 const PRH_INCOME_LIMITS = {
   1: 13090,
@@ -105,6 +33,25 @@ const STORAGE_KEY = "hkTaxCalculatorState";
 const ids = [
   "income",
   "otherIncome",
+  "employmentMode",
+  "basicSalary",
+  "bonus",
+  "commission",
+  "directorFee",
+  "cashAllowances",
+  "housingAllowance",
+  "rentalReimbursement",
+  "actualRent",
+  "employeeRentPaid",
+  "housingMonths",
+  "accommodationType",
+  "employerScheme",
+  "employerControl",
+  "rentDocuments",
+  "equityAwards",
+  "gratuity",
+  "taxableBenefits",
+  "housingTreatment",
   "status",
   "singleParent",
   "personalDisability",
@@ -200,61 +147,34 @@ function setStatus(message) {
 }
 
 function cap(amount, max) {
-  return Math.min(Math.max(0, amount), max);
+  return TAX_ENGINE.cap(amount, max);
 }
 
 function progressiveTax(netChargeableIncome) {
-  let remaining = Math.max(0, netChargeableIncome);
-  let total = 0;
-
-  for (const band of PROGRESSIVE_BANDS) {
-    if (remaining <= 0) break;
-    const taxable = Math.min(remaining, band.limit);
-    total += taxable * band.rate;
-    remaining -= taxable;
-  }
-
-  return total;
+  return TAX_ENGINE.progressiveTax(netChargeableIncome, TAX_RULES);
 }
 
 function progressiveBreakdown(netChargeableIncome) {
-  let remaining = Math.max(0, netChargeableIncome);
-  let lowerLimit = 0;
-
-  return PROGRESSIVE_BANDS.map((band) => {
-    const taxable = Math.min(remaining, band.limit);
-    const tax = Math.max(0, taxable) * band.rate;
-    const upperLimit = band.limit === Infinity ? Infinity : lowerLimit + band.limit;
-    remaining = Math.max(0, remaining - band.limit);
-
-    const item = {
-      lowerLimit,
-      upperLimit,
-      taxable: Math.max(0, taxable),
-      rate: band.rate,
-      tax,
-    };
-    lowerLimit = upperLimit;
-    return item;
-  });
+  return TAX_ENGINE.progressiveBreakdown(netChargeableIncome, TAX_RULES);
 }
 
 function standardTax(netIncome) {
-  const income = Math.max(0, netIncome);
-  const firstTier = Math.min(income, 5000000) * 0.15;
-  const secondTier = Math.max(0, income - 5000000) * 0.16;
-  return firstTier + secondTier;
+  return TAX_ENGINE.standardTax(netIncome, TAX_RULES);
 }
 
 function calculatePerson(prefix, rules) {
   const d = rules.deductions;
-  const grossIncome = value(fieldId(prefix, "income")) + value(fieldId(prefix, "otherIncome"));
+  const employment = calculateEmploymentIncome(prefix);
+  const grossIncome = employment.assessableIncome + value(fieldId(prefix, "otherIncome"));
+  const hasQualifyingChild = value("children") > 0;
+  const homeLoanLimit = TAX_ENGINE.housingDeductionLimit(rules, hasQualifyingChild, "homeLoan");
+  const rentLimit = TAX_ENGINE.housingDeductionLimit(rules, hasQualifyingChild, "rent");
 
   const ordinaryDeductions =
     cap(value(fieldId(prefix, "mpf")), d.mpf) +
     cap(value(fieldId(prefix, "education")), d.education) +
-    cap(value(fieldId(prefix, "homeLoan")), d.homeLoan) +
-    cap(value(fieldId(prefix, "rent")), d.rent) +
+    cap(value(fieldId(prefix, "homeLoan")), homeLoanLimit) +
+    cap(value(fieldId(prefix, "rent")), rentLimit) +
     cap(value(fieldId(prefix, "vhis")), d.vhisPerPerson * value(fieldId(prefix, "vhisPeople"))) +
     cap(value(fieldId(prefix, "annuity")), d.annuity) +
     cap(value(fieldId(prefix, "elderCare")), d.elderCare) +
@@ -267,6 +187,7 @@ function calculatePerson(prefix, rules) {
 
   return {
     grossIncome,
+    employment,
     ordinaryDeductions,
     donations,
     deductions,
@@ -279,27 +200,74 @@ function fieldId(prefix, name) {
   return `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`;
 }
 
-function taxAfterReduction(baseTax, rules) {
-  const reduction = Math.min(baseTax, rules.taxReduction);
+function calculateEmploymentIncome(prefix) {
+  if (prefix || value("employmentMode") !== "advanced") {
+    const assessableIncome = value(fieldId(prefix, "income"));
+    return {
+      mode: "simple",
+      cashEmploymentIncome: assessableIncome,
+      assessableIncome,
+      housingBenefit: {
+        treatment: "none",
+        eligibilityStatus: "NOT_APPLICABLE",
+        taxableHousingAmount: 0,
+        rentalValue: 0,
+        cashEquivalent: 0,
+        percentage: 0,
+        months: 0,
+        warnings: [],
+      },
+      normalCashScenarioIncome: assessableIncome,
+    };
+  }
+
+  const cashEmploymentIncome =
+    value("basicSalary") +
+    value("bonus") +
+    value("commission") +
+    value("directorFee") +
+    value("cashAllowances") +
+    value("housingAllowance") +
+    value("equityAwards") +
+    value("gratuity") +
+    value("taxableBenefits");
+  const treatment = value("housingTreatment");
+  const cashHousingAmount = treatment === "cashAllowance" ? value("rentalReimbursement") : 0;
+  const housingBenefit = TAX_ENGINE.calculateHousingBenefit(
+    {
+      treatment,
+      cashIncomeBase: cashEmploymentIncome,
+      reimbursed: value("rentalReimbursement"),
+      actualRent: value("actualRent"),
+      employeeRentPaid: value("employeeRentPaid"),
+      months: value("housingMonths"),
+      accommodationType: value("accommodationType"),
+      employerScheme: value("employerScheme"),
+      employerControl: value("employerControl"),
+      documentsAvailable: value("rentDocuments"),
+    },
+    TAX_RULES,
+  );
+  const taxableHousingAmount =
+    treatment === "qualifyingRentalReimbursement" || treatment === "employerProvided"
+      ? housingBenefit.taxableHousingAmount
+      : cashHousingAmount;
+
   return {
-    reduction,
-    taxPayable: Math.max(0, baseTax - reduction),
+    mode: "advanced",
+    cashEmploymentIncome,
+    assessableIncome: cashEmploymentIncome + taxableHousingAmount,
+    housingBenefit,
+    normalCashScenarioIncome: cashEmploymentIncome + Math.max(value("rentalReimbursement"), value("actualRent")),
   };
 }
 
-function calculateTax(netIncome, allowances, rules) {
-  const netChargeable = Math.max(0, netIncome - allowances);
-  const progressive = progressiveTax(netChargeable);
-  const standard = standardTax(netIncome);
-  const baseTax = Math.min(progressive, standard);
+function taxAfterReduction(baseTax, rules) {
+  return TAX_ENGINE.taxAfterReduction(baseTax, rules);
+}
 
-  return {
-    netChargeable,
-    progressive,
-    standard,
-    baseTax,
-    ...taxAfterReduction(baseTax, rules),
-  };
+function calculateTax(netIncome, allowances, rules) {
+  return TAX_ENGINE.calculateTax(netIncome, allowances, rules, TAX_RULES);
 }
 
 function calculateSharedAllowances(rules, isMarried) {
@@ -329,6 +297,7 @@ function parentAllowances(prefix, allowances) {
 
 function calculate() {
   normalizeAssessmentStatus();
+  updateProgressiveDisclosure();
   const rules = TAX_YEARS[activeYear];
   const a = rules.allowances;
   const assessmentStatus = value("status");
@@ -353,11 +322,13 @@ function calculate() {
   const selectedTaxPayable = result.taxPayable;
   const grossIncome = isMarried ? jointGrossIncome : person.grossIncome;
   const deductions = isMarried ? jointDeductions : person.deductions;
+  const housingRentalValue = person.employment.housingBenefit.rentalValue || 0;
   const selectedAllowances = useJointAssessment ? allowances : isMarried ? individualAllowances + spouseAllowances : individualAllowances;
   const selectedLabel = useJointAssessment ? "合併" : isMarried ? "分開" : "個人";
 
   renderSummary({
     grossIncome,
+    housingRentalValue,
     deductions,
     allowances: selectedAllowances,
     netIncome: isMarried ? jointNetIncome : person.netIncome,
@@ -410,6 +381,19 @@ function calculateSharedAllowancesForPrimary(rules) {
 function emptyPerson() {
   return {
     grossIncome: 0,
+    employment: {
+      mode: "simple",
+      housingBenefit: {
+        treatment: "none",
+        eligibilityStatus: "NOT_APPLICABLE",
+        taxableHousingAmount: 0,
+        rentalValue: 0,
+        cashEquivalent: 0,
+        percentage: 0,
+        months: 0,
+        warnings: [],
+      },
+    },
     ordinaryDeductions: 0,
     donations: 0,
     deductions: 0,
@@ -432,6 +416,7 @@ function renderSummary(result) {
   const fields = {
     taxPayable: result.taxPayable,
     grossIncome: result.grossIncome,
+    housingRentalValue: result.housingRentalValue,
     deductions: result.deductions,
     allowances: result.allowances,
     netChargeable: result.netChargeable,
@@ -459,6 +444,7 @@ function renderSummary(result) {
   document.getElementById("spouseColumn").classList.toggle("visible", result.isMarried);
   renderProgressiveFormula(result);
   renderSpouseFormula(result);
+  renderHousingBenefitExplanation(result);
   renderAdvice(result);
   renderHousingComparison(result);
   renderNotes();
@@ -480,6 +466,31 @@ function renderProgressiveFormula(result) {
 
 function renderSpouseFormula(result) {
   renderFormulaList("spouseProgressiveFormula", result.spouseSeparateResult.netChargeable, result.spouseSeparateResult.progressive);
+}
+
+function renderHousingBenefitExplanation(result) {
+  const list = document.getElementById("housingBenefitExplanation");
+  const benefit = result.person.employment.housingBenefit;
+  const items = [];
+
+  if (result.person.employment.mode !== "advanced" || benefit.treatment === "none") {
+    items.push("簡易模式或未輸入住屋福利：所有入息按普通薪酬處理。");
+  } else if (benefit.treatment === "cashAllowance") {
+    items.push(`普通現金房屋津貼按薪酬處理：${money.format(Math.round(benefit.taxableHousingAmount))} 已計入總入息。`);
+  } else {
+    items.push(`住所類型租值百分比：${(benefit.percentage * 100).toFixed(0)}%；租值：${money.format(Math.round(benefit.rentalValue))}。`);
+    items.push(`資格狀態：${benefit.eligibilityStatus === "ELIGIBLE" ? "已按輸入資料確認" : "仍需確認"}。`);
+    items.push("租金發還 / 僱主提供住所不是普通扣除額；合資格時以 IRD 租值規則加入入息。");
+    items.push("只更改糧單字眼不足以建立合資格安排，必須保留僱主制度、審批及租金付款證明。");
+    benefit.warnings.forEach((warning) => items.push(warning));
+  }
+
+  list.innerHTML = "";
+  items.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
 }
 
 function renderFormulaList(listId, netChargeable, progressive) {
@@ -975,6 +986,7 @@ function collectFormState() {
 
   ids.forEach((id) => {
     const field = document.getElementById(id);
+    if (!field) return;
     state.fields[id] = field.type === "checkbox" ? field.checked : field.value;
   });
 
@@ -1000,6 +1012,7 @@ function applyFormState(state) {
   });
 
   normalizeAssessmentStatus();
+  updateProgressiveDisclosure();
   calculate();
   return true;
 }
@@ -1010,6 +1023,16 @@ function normalizeAssessmentStatus() {
   if (!validStatuses.includes(status.value)) {
     status.value = "single";
   }
+}
+
+function updateProgressiveDisclosure() {
+  const isAdvanced = value("employmentMode") === "advanced";
+  const housingTreatment = value("housingTreatment");
+  const needsHousingQuestions = isAdvanced && housingTreatment !== "none";
+  document.getElementById("tax-form").classList.toggle("advanced-mode", isAdvanced);
+  document.querySelectorAll(".housing-benefit-input").forEach((item) => {
+    item.classList.toggle("visible-benefit-field", needsHousingQuestions);
+  });
 }
 
 function saveFormState() {
@@ -1175,9 +1198,15 @@ function estimateMarginalRate(result) {
 
 function renderNotes() {
   const list = document.getElementById("ruleNotes");
+  const rules = TAX_YEARS[activeYear];
   list.innerHTML = "";
 
-  TAX_YEARS[activeYear].notes.forEach((note) => {
+  [
+    `課稅年度：${rules.label}`,
+    `規則版本：${rules.ruleVersion}`,
+    `最後核對：${TAX_RULES.meta.lastVerifiedDate}`,
+    ...rules.notes,
+  ].forEach((note) => {
     const item = document.createElement("li");
     item.textContent = note;
     list.appendChild(item);
@@ -1242,11 +1271,13 @@ document.querySelectorAll("[data-tab]").forEach((button) => {
 });
 
 ids.forEach((id) => {
-  document.getElementById(id).addEventListener("input", () => {
+  const field = document.getElementById(id);
+  if (!field) return;
+  field.addEventListener("input", () => {
     maybeSetForecastCustom(id);
     calculate();
   });
-  document.getElementById(id).addEventListener("change", () => {
+  field.addEventListener("change", () => {
     maybeSetForecastCustom(id);
     calculate();
   });
